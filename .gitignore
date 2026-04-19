@@ -20,3 +20,5 @@ node_modules/
 # Sensitive
 credentials.json
 *.key
+.vercel
+.env*.local

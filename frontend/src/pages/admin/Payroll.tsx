@@ -50,7 +50,7 @@ export default function AdminPayroll() {
     createMut.mutate(form);
   };
 
-  const activePeriod = periods.find(p => p.id === selectedPeriod);
+  void selectedPeriod; // period selection highlights the row; slips are fetched per employee
 
   return (
     <div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getEmployees, getAttendance, createAttendanceLog, updateAttendanceLog } from "../../services/api";
+import { getEmployees, getAttendance, updateAttendanceLog } from "../../services/api";
 import type { Employee, AttendanceLog } from "../../types";
 import { format } from "date-fns";
 import { Search, Pencil } from "lucide-react";

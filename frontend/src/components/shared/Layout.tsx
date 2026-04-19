@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/auth";
-import { LogOut, Users, Calendar, DollarSign, Clock, Home, CreditCard } from "lucide-react";
+import { LogOut, Users, DollarSign, Clock, Home, CreditCard } from "lucide-react";
 
 const adminNav = [
   { to: "/admin", label: "Dashboard", icon: Home, end: true },

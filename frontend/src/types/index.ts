@@ -16,6 +16,7 @@ export interface Employee {
   position: string | null;
   employment_type: "monthly" | "daily";
   base_salary: number;
+  daily_rate: number | null;
   ot_rate_per_hour: number;
   lunch_allowance_per_day: number;
   work_start_time: string;
@@ -76,6 +77,7 @@ export interface Advance {
   amount: number;
   request_date: string;
   approved_date: string | null;
+  period_id: string | null;
   status: "pending" | "approved" | "rejected" | "deducted";
   reason: string | null;
 }
