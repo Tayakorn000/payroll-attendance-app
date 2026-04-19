@@ -1,0 +1,22 @@
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.env
+
+# Node
+frontend/node_modules/
+frontend/dist/
+node_modules/
+
+# Vercel
+.vercel/
+
+# macOS
+.DS_Store
+
+# Sensitive
+credentials.json
+*.key
