@@ -4,21 +4,21 @@ from app.config import get_settings
 
 settings = get_settings()
 
-# Neon (serverless PostgreSQL) requires SSL and no prepared-statement caching
-# when using pgbouncer pooling. These settings are safe for both local and Neon.
 _db_url = settings.async_database_url
 _is_neon = "neon.tech" in _db_url
 _connect_args: dict = {}
 if _is_neon:
+    # psycopg3: sslmode for encryption, prepare_threshold=None disables prepared
+    # statements for pgbouncer compatibility
     _connect_args = {
-        "ssl": "require",
-        "statement_cache_size": 0,  # required for pgbouncer
+        "sslmode": "require",
+        "prepare_threshold": None,
     }
 
 engine = create_async_engine(
     _db_url,
     echo=False,
-    pool_size=1,           # serverless: keep pool tiny
+    pool_size=1,
     max_overflow=4,
     pool_pre_ping=True,
     connect_args=_connect_args,

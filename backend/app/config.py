@@ -3,7 +3,7 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    database_url: str = "postgresql+asyncpg://postgres:password@localhost:5432/payroll_db"
+    database_url: str = "postgresql+psycopg://postgres:password@localhost:5432/payroll_db"
     secret_key: str = "change-me-in-production"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 480
@@ -20,12 +20,12 @@ class Settings(BaseSettings):
 
     @property
     def async_database_url(self) -> str:
-        """Ensure the URL uses the asyncpg driver regardless of what Neon/Vercel provides."""
+        """Ensure the URL uses the psycopg driver regardless of what Neon/Vercel provides."""
         url = self.database_url
         if url.startswith("postgres://"):
-            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
-        elif url.startswith("postgresql://") and "+asyncpg" not in url:
-            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            url = url.replace("postgres://", "postgresql+psycopg://", 1)
+        elif url.startswith("postgresql://") and "+psycopg" not in url:
+            url = url.replace("postgresql://", "postgresql+psycopg://", 1)
         return url
 
 
