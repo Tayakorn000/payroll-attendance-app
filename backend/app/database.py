@@ -8,12 +8,7 @@ _db_url = settings.async_database_url
 _is_neon = "neon.tech" in _db_url
 _connect_args: dict = {}
 if _is_neon:
-    # psycopg3: sslmode for encryption, prepare_threshold=None disables prepared
-    # statements for pgbouncer compatibility
-    _connect_args = {
-        "sslmode": "require",
-        "prepare_threshold": None,
-    }
+    _connect_args = {"sslmode": "require"}
 
 engine = create_async_engine(
     _db_url,
