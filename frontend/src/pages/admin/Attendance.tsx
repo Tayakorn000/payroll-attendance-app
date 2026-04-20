@@ -108,7 +108,7 @@ export default function AdminAttendance() {
 
       {/* Summary */}
       {logs.length > 0 && (
-        <div className="grid grid-cols-5 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
           {[
             { label: "มาทำงาน", value: totals.present, color: "text-green-600" },
             { label: "มาสาย", value: totals.late, color: "text-yellow-600" },
@@ -126,38 +126,40 @@ export default function AdminAttendance() {
 
       {/* Table */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              {["วันที่", "เวลาเข้างาน", "เวลาเลิกงาน", "สถานะ", "มาสาย (นาที)", "OT (นาที)", "ทำงาน (นาที)", "หมายเหตุ", ""].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-gray-500 font-medium">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {logs.length === 0 ? (
-              <tr><td colSpan={9} className="px-4 py-8 text-center text-gray-400">เลือกพนักงานเพื่อดูการเข้างาน</td></tr>
-            ) : logs.map(log => (
-              <tr key={log.id} className="border-b last:border-0 hover:bg-gray-50">
-                <td className="px-4 py-2 font-medium">{log.log_date}</td>
-                <td className="px-4 py-2">{log.clock_in ? format(new Date(log.clock_in), "HH:mm") : "—"}</td>
-                <td className="px-4 py-2">{log.clock_out ? format(new Date(log.clock_out), "HH:mm") : "—"}</td>
-                <td className="px-4 py-2">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[log.status] || "bg-gray-100 text-gray-600"}`}>
-                    {STATUS_THAI[log.status] || log.status}
-                  </span>
-                </td>
-                <td className="px-4 py-2 text-center">{log.late_minutes || "—"}</td>
-                <td className="px-4 py-2 text-center">{log.ot_minutes || "—"}</td>
-                <td className="px-4 py-2 text-center">{log.work_minutes || "—"}</td>
-                <td className="px-4 py-2 text-gray-400 text-xs">{log.notes || "—"}</td>
-                <td className="px-4 py-2">
-                  <button onClick={() => openEdit(log)} className="text-gray-400 hover:text-blue-600"><Pencil size={14} /></button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                {["วันที่", "เวลาเข้างาน", "เวลาเลิกงาน", "สถานะ", "มาสาย (นาที)", "OT (นาที)", "ทำงาน (นาที)", "หมายเหตุ", ""].map(h => (
+                  <th key={h} className="text-left px-4 py-3 text-gray-500 font-medium whitespace-nowrap">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {logs.length === 0 ? (
+                <tr><td colSpan={9} className="px-4 py-8 text-center text-gray-400">เลือกพนักงานเพื่อดูการเข้างาน</td></tr>
+              ) : logs.map(log => (
+                <tr key={log.id} className="border-b last:border-0 hover:bg-gray-50">
+                  <td className="px-4 py-2 font-medium whitespace-nowrap">{log.log_date}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{log.clock_in ? format(new Date(log.clock_in), "HH:mm") : "—"}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{log.clock_out ? format(new Date(log.clock_out), "HH:mm") : "—"}</td>
+                  <td className="px-4 py-2">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[log.status] || "bg-gray-100 text-gray-600"}`}>
+                      {STATUS_THAI[log.status] || log.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 text-center">{log.late_minutes || "—"}</td>
+                  <td className="px-4 py-2 text-center">{log.ot_minutes || "—"}</td>
+                  <td className="px-4 py-2 text-center">{log.work_minutes || "—"}</td>
+                  <td className="px-4 py-2 text-gray-400 text-xs min-w-[150px]">{log.notes || "—"}</td>
+                  <td className="px-4 py-2">
+                    <button onClick={() => openEdit(log)} className="text-gray-400 hover:text-blue-600"><Pencil size={14} /></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Edit modal */}

@@ -60,7 +60,7 @@ export default function EmployeePayslips() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-sm">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 text-sm">
               {/* Attendance */}
               <div className="bg-gray-50/50 p-4 rounded-lg print:bg-white print:p-0">
                 <p className="font-bold text-gray-800 mb-4 pb-2 border-b border-gray-200">สถิติการเข้างาน</p>
@@ -75,7 +75,7 @@ export default function EmployeePayslips() {
               </div>
 
               {/* Earnings */}
-              <div className="md:col-span-1">
+              <div className="lg:col-span-1">
                 <p className="font-bold text-gray-800 mb-4 pb-2 border-b border-gray-200">รายได้ (Earnings)</p>
                 <div className="space-y-2.5 text-gray-600">
                   <Row label="เงินเดือนพื้นฐาน" value={`฿${slip.base_salary_earned.toLocaleString()}`} />
@@ -91,7 +91,7 @@ export default function EmployeePayslips() {
               </div>
 
               {/* Deductions */}
-              <div className="md:col-span-1">
+              <div className="lg:col-span-1">
                 <p className="font-bold text-gray-800 mb-4 pb-2 border-b border-gray-200">รายการหัก (Deductions)</p>
                 <div className="space-y-2.5 text-gray-600">
                   <Row label="ประกันสังคม" value={`฿${slip.social_security_deduction.toLocaleString()}`} />

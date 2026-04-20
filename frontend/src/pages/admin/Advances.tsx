@@ -64,7 +64,7 @@ export default function AdminAdvances() {
       </div>
 
       {/* Filter */}
-      <div className="bg-white rounded-xl p-4 shadow-sm mb-4 flex gap-3">
+      <div className="bg-white rounded-xl p-4 shadow-sm mb-4 flex flex-wrap gap-2">
         {["", "pending", "approved", "rejected", "deducted"].map(s => (
           <button key={s} onClick={() => setStatusFilter(s)}
             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${statusFilter === s ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
@@ -74,45 +74,47 @@ export default function AdminAdvances() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              {["พนักงาน", "จำนวนเงิน", "วันที่ขอเบิก", "เหตุผล", "สถานะ", "รอบการจ่าย", "จัดการ"].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-gray-500 font-medium">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {advances.length === 0 ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">ไม่พบข้อมูลการเบิกเงินล่วงหน้า</td></tr>
-            ) : advances.map(adv => {
-              const emp = empMap[adv.employee_id];
-              return (
-                <tr key={adv.id} className="border-b last:border-0 hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <p className="font-medium">{emp?.first_name || "—"}</p>
-                    <p className="text-xs text-gray-400">{emp?.employee_code}</p>
-                  </td>
-                  <td className="px-4 py-3 font-medium">฿{Number(adv.amount).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-gray-500">{adv.request_date}</td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">{adv.reason || "—"}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[adv.status]}`}>{STATUS_THAI[adv.status] || adv.status}</span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-400 text-xs">{periods.find(p => p.id === adv.period_id)?.period_name || "—"}</td>
-                  <td className="px-4 py-3">
-                    {adv.status === "pending" && (
-                      <div className="flex gap-1">
-                        <button onClick={() => setApproveModal(adv)} className="text-green-500 hover:text-green-700"><CheckCircle size={16} /></button>
-                        <button onClick={() => rejectMut.mutate(adv.id)} className="text-red-400 hover:text-red-600"><XCircle size={16} /></button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                {["พนักงาน", "จำนวนเงิน", "วันที่ขอเบิก", "เหตุผล", "สถานะ", "รอบการจ่าย", "จัดการ"].map(h => (
+                  <th key={h} className="text-left px-4 py-3 text-gray-500 font-medium whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {advances.length === 0 ? (
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">ไม่พบข้อมูลการเบิกเงินล่วงหน้า</td></tr>
+              ) : advances.map(adv => {
+                const emp = empMap[adv.employee_id];
+                return (
+                  <tr key={adv.id} className="border-b last:border-0 hover:bg-gray-50">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <p className="font-medium">{emp?.first_name || "—"}</p>
+                      <p className="text-xs text-gray-400">{emp?.employee_code}</p>
+                    </td>
+                    <td className="px-4 py-3 font-medium whitespace-nowrap">฿{Number(adv.amount).toLocaleString()}</td>
+                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{adv.request_date}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs min-w-[150px]">{adv.reason || "—"}</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${STATUS_COLORS[adv.status]}`}>{STATUS_THAI[adv.status] || adv.status}</span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">{periods.find(p => p.id === adv.period_id)?.period_name || "—"}</td>
+                    <td className="px-4 py-3">
+                      {adv.status === "pending" && (
+                        <div className="flex gap-1 flex-nowrap min-w-max">
+                          <button onClick={() => setApproveModal(adv)} className="text-green-500 hover:text-green-700"><CheckCircle size={16} /></button>
+                          <button onClick={() => rejectMut.mutate(adv.id)} className="text-red-400 hover:text-red-600"><XCircle size={16} /></button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Create modal */}

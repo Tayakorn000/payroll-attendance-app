@@ -100,52 +100,56 @@ export default function AdminPayroll() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm mb-6 overflow-hidden">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              {["รอบการจ่าย", "เริ่มต้น", "สิ้นสุด", "วันที่จ่าย", "สถานะ", "จัดการ"].map(h => (
-                <th key={h} className="px-4 py-3 text-gray-500 font-medium">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {periods.map(p => (
-              <tr key={p.id} className={`border-b last:border-0 hover:bg-gray-50 transition-colors ${selectedPeriod === p.id ? 'bg-blue-50/30' : ''}`}>
-                <td className="px-4 py-3 font-medium text-gray-900">{p.period_name}</td>
-                <td className="px-4 py-3 text-gray-500">{p.start_date}</td>
-                <td className="px-4 py-3 text-gray-500">{p.end_date}</td>
-                <td className="px-4 py-3 text-gray-500">{p.payment_date || "—"}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[p.status]}`}>{STATUS_THAI[p.status] || p.status}</span>
-                </td>
-                <td className="px-4 py-3 flex gap-2">
-                  <button
-                    onClick={() => calcMut.mutate(p.id)}
-                    disabled={calcMut.isPending}
-                    className="flex items-center gap-1 text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-md hover:bg-blue-100 font-medium"
-                  >
-                    <Calculator size={14} /> คำนวณ
-                  </button>
-                  {p.status === "processing" && (
-                    <button
-                      onClick={() => approveMut.mutate(p.id)}
-                      className="flex items-center gap-1 text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded-md hover:bg-green-100 font-medium"
-                    >
-                      <CheckCircle size={14} /> อนุมัติ
-                    </button>
-                  )}
-                  <button onClick={() => setSelectedPeriod(p.id === selectedPeriod ? "" : p.id)}
-                    className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-md font-medium ${selectedPeriod === p.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-                    <ChevronDown size={14} /> ดูสลิป
-                  </button>
-                  <button onClick={() => handleExport(p.id)} className="p-1.5 text-gray-400 hover:text-blue-600">
-                    <Download size={16} />
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left min-w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                {["รอบการจ่าย", "เริ่มต้น", "สิ้นสุด", "วันที่จ่าย", "สถานะ", "จัดการ"].map(h => (
+                  <th key={h} className="px-4 py-3 text-gray-500 font-medium whitespace-nowrap">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {periods.map(p => (
+                <tr key={p.id} className={`border-b last:border-0 hover:bg-gray-50 transition-colors ${selectedPeriod === p.id ? 'bg-blue-50/30' : ''}`}>
+                  <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{p.period_name}</td>
+                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{p.start_date}</td>
+                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{p.end_date}</td>
+                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{p.payment_date || "—"}</td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[p.status]}`}>{STATUS_THAI[p.status] || p.status}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-2 flex-nowrap min-w-max">
+                      <button
+                        onClick={() => calcMut.mutate(p.id)}
+                        disabled={calcMut.isPending}
+                        className="flex items-center gap-1 text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-md hover:bg-blue-100 font-medium"
+                      >
+                        <Calculator size={14} /> คำนวณ
+                      </button>
+                      {p.status === "processing" && (
+                        <button
+                          onClick={() => approveMut.mutate(p.id)}
+                          className="flex items-center gap-1 text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded-md hover:bg-green-100 font-medium"
+                        >
+                          <CheckCircle size={14} /> อนุมัติ
+                        </button>
+                      )}
+                      <button onClick={() => setSelectedPeriod(p.id === selectedPeriod ? "" : p.id)}
+                        className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-md font-medium ${selectedPeriod === p.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                        <ChevronDown size={14} /> ดูสลิป
+                      </button>
+                      <button onClick={() => handleExport(p.id)} className="p-1.5 text-gray-400 hover:text-blue-600">
+                        <Download size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -173,7 +177,7 @@ export default function AdminPayroll() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-sm">
               <div className="space-y-4">
                 <div>
                   <p className="font-bold text-gray-800 border-b pb-2 mb-3">ข้อมูลการเข้างาน</p>

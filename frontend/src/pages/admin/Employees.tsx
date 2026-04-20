@@ -79,43 +79,47 @@ export default function AdminEmployees() {
       </div>
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              {["รหัส", "ชื่อ", "แผนก", "ตำแหน่ง", "ประเภท", "เงินเดือนพื้นฐาน", "ค่าล่วงเวลา (OT)", "จัดการ"].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-gray-500 font-medium">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {employees.map(emp => (
-              <tr key={emp.id} className="border-b last:border-0 hover:bg-gray-50">
-                <td className="px-4 py-3 font-mono font-medium text-blue-600">{emp.employee_code}</td>
-                <td className="px-4 py-3 font-medium">{emp.full_name}</td>
-                <td className="px-4 py-3 text-gray-500">{emp.department || "—"}</td>
-                <td className="px-4 py-3 text-gray-500">{emp.position || "—"}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${emp.employment_type === "monthly" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}`}>
-                    {emp.employment_type === "monthly" ? "รายเดือน" : "รายวัน"}
-                  </span>
-                </td>
-                <td className="px-4 py-3">฿{emp.base_salary.toLocaleString()}</td>
-                <td className="px-4 py-3">฿{emp.ot_rate_per_hour}/ชม.</td>
-                <td className="px-4 py-3 flex gap-2">
-                  <button onClick={() => openEdit(emp)} className="text-gray-500 hover:text-blue-600 p-1 hover:bg-gray-100 rounded-md transition-colors" title="แก้ไข">
-                    <Pencil size={15} />
-                  </button>
-                  <button onClick={() => openReset(emp)} className="text-gray-500 hover:text-orange-600 p-1 hover:bg-gray-100 rounded-md transition-colors" title="รีเซ็ตรหัสผ่าน">
-                    <Key size={15} />
-                  </button>
-                  <button onClick={() => handleDelete(emp)} className="text-gray-500 hover:text-red-600 p-1 hover:bg-gray-100 rounded-md transition-colors" title="ลบ">
-                    <Trash2 size={15} />
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                {["รหัส", "ชื่อ", "แผนก", "ตำแหน่ง", "ประเภท", "เงินเดือนพื้นฐาน", "ค่าล่วงเวลา (OT)", "จัดการ"].map(h => (
+                  <th key={h} className="text-left px-4 py-3 text-gray-500 font-medium whitespace-nowrap">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {employees.map(emp => (
+                <tr key={emp.id} className="border-b last:border-0 hover:bg-gray-50">
+                  <td className="px-4 py-3 font-mono font-medium text-blue-600">{emp.employee_code}</td>
+                  <td className="px-4 py-3 font-medium whitespace-nowrap">{emp.full_name}</td>
+                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{emp.department || "—"}</td>
+                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{emp.position || "—"}</td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${emp.employment_type === "monthly" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}`}>
+                      {emp.employment_type === "monthly" ? "รายเดือน" : "รายวัน"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">฿{emp.base_salary.toLocaleString()}</td>
+                  <td className="px-4 py-3">฿{emp.ot_rate_per_hour}/ชม.</td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-2 flex-nowrap min-w-max">
+                      <button onClick={() => openEdit(emp)} className="text-gray-500 hover:text-blue-600 p-1 hover:bg-gray-100 rounded-md transition-colors" title="แก้ไข">
+                        <Pencil size={15} />
+                      </button>
+                      <button onClick={() => openReset(emp)} className="text-gray-500 hover:text-orange-600 p-1 hover:bg-gray-100 rounded-md transition-colors" title="รีเซ็ตรหัสผ่าน">
+                        <Key size={15} />
+                      </button>
+                      <button onClick={() => handleDelete(emp)} className="text-gray-500 hover:text-red-600 p-1 hover:bg-gray-100 rounded-md transition-colors" title="ลบ">
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {modal === "reset" && selected && (
