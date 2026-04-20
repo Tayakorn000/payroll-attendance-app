@@ -23,6 +23,11 @@ export interface Employee {
   work_end_time: string;
   hire_date: string;
   is_active: boolean;
+  id_card_number: string | null;
+  bank_name: string | null;
+  bank_account_number: string | null;
+  pvd_rate: number;
+  tax_allowance_personal: number;
 }
 
 export interface AttendanceLog {
@@ -66,6 +71,8 @@ export interface PayrollSlip {
   other_earnings: number;
   total_earnings: number;
   social_security_deduction: number;
+  provident_fund_deduction: number;
+  tax_deduction: number;
   advance_deduction: number;
   late_penalty: number;
   other_deductions: number;

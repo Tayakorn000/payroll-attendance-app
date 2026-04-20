@@ -5,8 +5,9 @@ from app.models.payroll import PayrollPeriod, PayrollSlip
 from app.models.advance import Advance
 from app.models.leave import LeaveRequest
 from app.models.announcement import Announcement
+from app.models.audit import AuditLog
 
 __all__ = [
     "User", "Employee", "AttendanceLog",
-    "PayrollPeriod", "PayrollSlip", "Advance", "LeaveRequest", "Announcement",
+    "PayrollPeriod", "PayrollSlip", "Advance", "LeaveRequest", "Announcement", "AuditLog",
 ]

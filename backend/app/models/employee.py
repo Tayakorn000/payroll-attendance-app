@@ -40,6 +40,16 @@ class Employee(Base):
     work_end_time: Mapped[str] = mapped_column(String(5), default="17:00")
 
     hire_date: Mapped[date] = mapped_column(Date, nullable=False)
+    
+    # Financial & Privacy Info
+    id_card_number: Mapped[str | None] = mapped_column(String(255), nullable=True) # Encrypted
+    bank_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    bank_account_number: Mapped[str | None] = mapped_column(String(255), nullable=True) # Encrypted
+    
+    # Tax & Deductions Info
+    pvd_rate: Mapped[float] = mapped_column(Numeric(5, 4), default=0.0) # Provident Fund
+    tax_allowance_personal: Mapped[float] = mapped_column(Numeric(12, 2), default=60000.0)
+    
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)

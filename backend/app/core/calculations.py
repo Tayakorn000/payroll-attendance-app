@@ -53,11 +53,51 @@ class PayrollResult:
     total_earnings: float
     # Deductions
     social_security: float
+    provident_fund: float
+    tax_deduction: float
     advance_deduction: float
     late_penalty: float
     other_deductions: float
     total_deductions: float
     net_pay: float
+
+
+def calculate_thai_pit(annual_income: float, personal_allowance: float = 60000.0, sso_annual: float = 9000.0) -> float:
+    """
+    Calculate Thai Personal Income Tax (Progressive Rate).
+    Logic:
+      1. Gross Income - Expense (50% max 100k) - Personal Allowance (60k) - SSO (max 9k)
+      2. Apply progressive steps.
+    """
+    # Standard Expense: 50% but not exceeding 100,000
+    expense = min(annual_income * 0.5, 100000.0)
+    
+    taxable_income = annual_income - expense - personal_allowance - sso_annual
+    if taxable_income <= 0:
+        return 0.0
+
+    tax = 0.0
+    steps = [
+        (150000, 0.00),
+        (300000, 0.05),
+        (500000, 0.10),
+        (750000, 0.15),
+        (1000000, 0.20),
+        (2000000, 0.25),
+        (5000000, 0.30),
+        (float('inf'), 0.35)
+    ]
+    
+    prev_limit = 0
+    for limit, rate in steps:
+        if taxable_income > prev_limit:
+            taxable_in_step = min(taxable_income, limit) - prev_limit
+            tax += taxable_in_step * rate
+            prev_limit = limit
+        else:
+            break
+            
+    return round(tax, 2)
 
 
 def _parse_hhmm(hhmm: str, ref_date: date) -> datetime:
@@ -154,15 +194,15 @@ def calculate_attendance(
 def calculate_payroll(
     employee_id: str,
     period_name: str,
-    employment_type: str,           # "monthly" | "daily"
-    base_salary: float,             # monthly base OR daily rate * working_days
+    employment_type: str,
+    base_salary: float,
     daily_rate: float | None,
     ot_rate_per_hour: float,
     lunch_allowance_per_day: float,
     social_security_rate: float,
     social_security_cap: float,
     attendance_records: list[AttendanceResult],
-    working_days_in_period: int,    # total weekdays in the cycle (excl. holidays)
+    working_days_in_period: int,
     days_leave: int,
     advance_deduction: float,
     late_penalty_per_minute: float = 0.0,
@@ -170,22 +210,11 @@ def calculate_payroll(
     commission: float = 0.0,
     other_earnings: float = 0.0,
     other_deductions: float = 0.0,
+    pvd_rate: float = 0.0,
+    tax_allowance_personal: float = 60000.0,
 ) -> PayrollResult:
     """
-    Compute a full payroll slip from aggregated attendance data.
-
-    Earnings:
-      - Monthly: full base_salary regardless of attendance (absent = penalty only)
-      - Daily  : daily_rate × days_worked
-      - Lunch  : lunch_allowance_per_day × days_present (absent/leave excluded)
-      - OT     : (ot_minutes_total / 60) × ot_rate_per_hour
-      - Bonus/Comm/Other: manual additions
-
-    Deductions:
-      - Social Security : min(base_salary × ss_rate, ss_cap)
-      - Advances        : sum of approved advances assigned to this period
-      - Late penalty    : late_minutes × penalty_rate (optional, can be 0)
-      - Other deductions: manual deductions
+    Compute a full payroll slip with Thai Tax and PVD.
     """
     days_worked = sum(1 for r in attendance_records if r.status != "absent")
     days_absent = sum(1 for r in attendance_records if r.status == "absent")
@@ -211,11 +240,19 @@ def calculate_payroll(
 
     # --- Social Security ---
     ss = round(min(base_earned * social_security_rate, social_security_cap), 2)
+    
+    # --- Provident Fund ---
+    pvd = round(base_earned * pvd_rate, 2)
+
+    # --- Tax Calculation (Simple Annual Estimate) ---
+    annual_income = total_earnings * 12 # Simple estimation
+    annual_tax = calculate_thai_pit(annual_income, tax_allowance_personal, ss * 12)
+    tax_monthly = round(annual_tax / 12, 2)
 
     # --- Late penalty ---
     late_penalty = round(late_minutes_total * late_penalty_per_minute, 2)
 
-    total_deductions = round(ss + advance_deduction + late_penalty + other_deductions, 2)
+    total_deductions = round(ss + pvd + tax_monthly + advance_deduction + late_penalty + other_deductions, 2)
     net_pay = round(total_earnings - total_deductions, 2)
 
     return PayrollResult(
@@ -235,6 +272,8 @@ def calculate_payroll(
         other_earnings=other_earnings,
         total_earnings=total_earnings,
         social_security=ss,
+        provident_fund=pvd,
+        tax_deduction=tax_monthly,
         advance_deduction=round(advance_deduction, 2),
         late_penalty=late_penalty,
         other_deductions=other_deductions,

@@ -62,6 +62,8 @@ class PayrollSlip(Base):
 
     # Deductions
     social_security_deduction: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
+    provident_fund_deduction: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
+    tax_deduction: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     advance_deduction: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     late_penalty: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     other_deductions: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)

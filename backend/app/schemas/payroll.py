@@ -41,6 +41,8 @@ class PayrollSlipOut(BaseModel):
     other_earnings: float
     total_earnings: float
     social_security_deduction: float
+    provident_fund_deduction: float
+    tax_deduction: float
     advance_deduction: float
     late_penalty: float
     other_deductions: float

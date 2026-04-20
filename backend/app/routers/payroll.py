@@ -141,6 +141,8 @@ async def calculate_period(period_id: UUID, db: AsyncSession = Depends(get_db)):
             commission=commission,
             other_earnings=other_earnings,
             other_deductions=other_deductions,
+            pvd_rate=float(emp.pvd_rate),
+            tax_allowance_personal=float(emp.tax_allowance_personal),
         )
 
         slip_data = dict(
@@ -158,6 +160,8 @@ async def calculate_period(period_id: UUID, db: AsyncSession = Depends(get_db)):
             other_earnings=result.other_earnings,
             total_earnings=result.total_earnings,
             social_security_deduction=result.social_security,
+            provident_fund_deduction=result.provident_fund,
+            tax_deduction=result.tax_deduction,
             advance_deduction=result.advance_deduction,
             late_penalty=result.late_penalty,
             other_deductions=result.other_deductions,
