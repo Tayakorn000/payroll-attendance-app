@@ -12,9 +12,11 @@ export interface Employee {
   first_name: string;
   last_name: string;
   full_name: string;
+  email: string | null;
+  phone: string | null;
   department: string | null;
   position: string | null;
-  employment_type: "monthly" | "daily";
+  employment_type: "monthly" | "daily" | "piece_rate";
   base_salary: number;
   daily_rate: number | null;
   ot_rate_per_hour: number;
@@ -66,6 +68,7 @@ export interface PayrollSlip {
   base_salary_earned: number;
   lunch_allowance_earned: number;
   ot_pay: number;
+  piece_rate_earned: number;
   bonus: number;
   commission: number;
   other_earnings: number;
@@ -74,6 +77,7 @@ export interface PayrollSlip {
   provident_fund_deduction: number;
   tax_deduction: number;
   advance_deduction: number;
+  loan_deduction: number;
   late_penalty: number;
   other_deductions: number;
   total_deductions: number;
@@ -104,4 +108,27 @@ export interface Advance {
   period_id: string | null;
   status: "pending" | "approved" | "rejected" | "deducted";
   reason: string | null;
+}
+
+export interface Loan {
+  id: string;
+  employee_id: string;
+  principal_amount: number;
+  interest_rate: number;
+  total_repayment_amount: number;
+  remaining_balance: number;
+  installment_count: number;
+  monthly_installment: number;
+  start_date: string;
+  status: "pending" | "active" | "completed" | "rejected";
+}
+
+export interface PieceRateWork {
+  id: string;
+  employee_id: string;
+  work_date: string;
+  item_name: string;
+  quantity: number;
+  rate_per_piece: number;
+  total_amount: number;
 }

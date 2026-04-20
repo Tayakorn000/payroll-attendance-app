@@ -243,6 +243,7 @@ export default function AdminPayroll() {
                   <Row label="เงินเดือนพื้นฐาน" value={slip.base_salary_earned.toLocaleString()} prefix="฿" />
                   <Row label="ค่าอาหารกลางวัน" value={slip.lunch_allowance_earned.toLocaleString()} prefix="฿" />
                   <Row label="ค่าล่วงเวลา (OT)" value={slip.ot_pay.toLocaleString()} prefix="฿" />
+                  <Row label="รายได้ตามชิ้นงาน" value={slip.piece_rate_earned.toLocaleString()} prefix="฿" highlight="text-blue-600" />
                   
                   {editingSlip === slip.id ? (
                     <div className="space-y-3 bg-blue-50/50 p-4 rounded-2xl border border-blue-100 mt-4 animate-in slide-in-from-top-1 duration-200">
@@ -268,6 +269,7 @@ export default function AdminPayroll() {
                 <div className="space-y-3 text-gray-600">
                   <Row label="ประกันสังคม" value={slip.social_security_deduction.toLocaleString()} prefix="- ฿" highlight="text-red-500" />
                   <Row label="กองทุนสำรองฯ (PVD)" value={slip.provident_fund_deduction.toLocaleString()} prefix="- ฿" highlight="text-red-500" />
+                  <Row label="หักชำระหนี้/เงินกู้" value={slip.loan_deduction.toLocaleString()} prefix="- ฿" highlight="text-red-500" />
                   <Row label="ภาษีหัก ณ ที่จ่าย" value={slip.tax_deduction.toLocaleString()} prefix="- ฿" highlight="text-red-500 font-bold" />
                   <Row label="หักเงินเบิกล่วงหน้า" value={slip.advance_deduction.toLocaleString()} prefix="- ฿" highlight="text-red-500" />
                   <Row label="หักมาสาย/ขาดงาน" value={slip.late_penalty.toLocaleString()} prefix="- ฿" highlight="text-red-500" />

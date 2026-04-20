@@ -107,7 +107,7 @@ export default function AdminEmployees() {
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{emp.position || "—"}</td>
                   <td className="px-4 py-3 text-center">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${emp.employment_type === "monthly" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}`}>
-                      {emp.employment_type === "monthly" ? "รายเดือน" : "รายวัน"}
+                      {emp.employment_type === "monthly" ? "รายเดือน" : emp.employment_type === "daily" ? "รายวัน" : "ตามชิ้นงาน"}
                     </span>
                   </td>
                   <td className="px-4 py-3 font-medium text-gray-900">฿{emp.base_salary.toLocaleString()}</td>
@@ -135,7 +135,7 @@ export default function AdminEmployees() {
       {modal === "reset" && selected && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
-            <div className="flex justify-between items-center p-5 border-b bg-gray-50">
+            <div className="flex justify-between items-center p-5 border-b bg-gray-50/50">
               <h2 className="font-bold text-gray-800 text-sm flex items-center gap-2"><Key size={16} className="text-orange-500" /> รีเซ็ตรหัสผ่าน: {selected.full_name}</h2>
               <button onClick={() => setModal(null)} className="text-gray-400 hover:text-gray-600 transition-colors"><X size={18} /></button>
             </div>
@@ -175,49 +175,46 @@ export default function AdminEmployees() {
             </div>
             
             <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto">
-              {/* Section 1: Basic Info */}
               <div>
                 <div className="flex items-center gap-2 mb-4 text-blue-600">
                   <ShieldCheck size={18} />
                   <h3 className="font-bold text-sm uppercase tracking-wider">ข้อมูลพื้นฐานและการจ้างงาน</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField label="รหัสพนักงาน" key="employee_code" value={form.employee_code} onChange={v => setForm({...form, employee_code: v})} required />
-                  <FormField label="วันที่เริ่มงาน" type="date" key="hire_date" value={form.hire_date} onChange={v => setForm({...form, hire_date: v})} required />
-                  <FormField label="ชื่อ" key="first_name" value={form.first_name} onChange={v => setForm({...form, first_name: v})} required />
-                  <FormField label="นามสกุล" key="last_name" value={form.last_name} onChange={v => setForm({...form, last_name: v})} required />
-                  <FormField label="แผนก" key="department" value={form.department} onChange={v => setForm({...form, department: v})} />
-                  <FormField label="ตำแหน่ง" key="position" value={form.position} onChange={v => setForm({...form, position: v})} />
+                  <FormField label="รหัสพนักงาน" value={form.employee_code} onChange={(v:any) => setForm({...form, employee_code: v})} required />
+                  <FormField label="วันที่เริ่มงาน" type="date" value={form.hire_date} onChange={(v:any) => setForm({...form, hire_date: v})} required />
+                  <FormField label="ชื่อ" value={form.first_name} onChange={(v:any) => setForm({...form, first_name: v})} required />
+                  <FormField label="นามสกุล" value={form.last_name} onChange={(v:any) => setForm({...form, last_name: v})} required />
+                  <FormField label="แผนก" value={form.department} onChange={(v:any) => setForm({...form, department: v})} />
+                  <FormField label="ตำแหน่ง" value={form.position} onChange={(v:any) => setForm({...form, position: v})} />
                 </div>
               </div>
 
-              {/* Section 2: Financial Info */}
               <div>
                 <div className="flex items-center gap-2 mb-4 text-green-600">
                   <Wallet size={18} />
                   <h3 className="font-bold text-sm uppercase tracking-wider">ข้อมูลการเงินและภาษี</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField label="เงินเดือนพื้นฐาน (บาท)" type="number" value={form.base_salary} onChange={v => setForm({...form, base_salary: v})} required />
-                  <FormField label="ประเภทการจ้าง" type="select" value={form.employment_type} onChange={v => setForm({...form, employment_type: v})} options={[{l:"รายเดือน",v:"monthly"},{l:"รายวัน",v:"daily"}]} />
-                  <FormField label="ค่าล่วงเวลา (บาท/ชม.)" type="number" value={form.ot_rate_per_hour} onChange={v => setForm({...form, ot_rate_per_hour: v})} />
-                  <FormField label="ค่าอาหาร/วัน (บาท)" type="number" value={form.lunch_allowance_per_day} onChange={v => setForm({...form, lunch_allowance_per_day: v})} />
-                  <FormField label="สะสม PVD (%)" type="number" value={form.pvd_rate * 100} onChange={v => setForm({...form, pvd_rate: v/100})} />
-                  <FormField label="ลดหย่อนภาษีส่วนตัว (บาท)" type="number" value={form.tax_allowance_personal} onChange={v => setForm({...form, tax_allowance_personal: v})} />
+                  <FormField label="เงินเดือนพื้นฐาน (บาท)" type="number" value={form.base_salary} onChange={(v:any) => setForm({...form, base_salary: v})} required />
+                  <FormField label="ประเภทการจ้าง" type="select" value={form.employment_type} onChange={(v:any) => setForm({...form, employment_type: v})} options={[{l:"รายเดือน",v:"monthly"},{l:"รายวัน",v:"daily"},{l:"ตามชิ้นงาน",v:"piece_rate"}]} />
+                  <FormField label="ค่าล่วงเวลา (บาท/ชม.)" type="number" value={form.ot_rate_per_hour} onChange={(v:any) => setForm({...form, ot_rate_per_hour: v})} />
+                  <FormField label="ค่าอาหาร/วัน (บาท)" type="number" value={form.lunch_allowance_per_day} onChange={(v:any) => setForm({...form, lunch_allowance_per_day: v})} />
+                  <FormField label="สะสม PVD (%)" type="number" value={form.pvd_rate * 100} onChange={(v:any) => setForm({...form, pvd_rate: v/100})} />
+                  <FormField label="ลดหย่อนภาษีส่วนตัว (บาท)" type="number" value={form.tax_allowance_personal} onChange={(v:any) => setForm({...form, tax_allowance_personal: v})} />
                 </div>
               </div>
 
-              {/* Section 3: Privacy & Bank (PDPA Compliance) */}
               <div>
                 <div className="flex items-center gap-2 mb-4 text-red-600">
                   <CreditCard size={18} />
                   <h3 className="font-bold text-sm uppercase tracking-wider">ข้อมูลส่วนตัวและธนาคาร (PDPA)</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField label="เลขบัตรประชาชน" value={form.id_card_number} onChange={v => setForm({...form, id_card_number: v})} placeholder="1-xxxx-xxxxx-xx-x" />
+                  <FormField label="เลขบัตรประชาชน" value={form.id_card_number} onChange={(v:any) => setForm({...form, id_card_number: v})} placeholder="1-xxxx-xxxxx-xx-x" />
                   <div className="hidden md:block" />
-                  <FormField label="ชื่อธนาคาร" value={form.bank_name} onChange={v => setForm({...form, bank_name: v})} placeholder="เช่น กสิกรไทย, ไทยพาณิชย์" />
-                  <FormField label="เลขบัญชีธนาคาร" value={form.bank_account_number} onChange={v => setForm({...form, bank_account_number: v})} placeholder="xxx-x-xxxxx-x" />
+                  <FormField label="ชื่อธนาคาร" value={form.bank_name} onChange={(v:any) => setForm({...form, bank_name: v})} placeholder="เช่น กสิกรไทย, ไทยพาณิชย์" />
+                  <FormField label="เลขบัญชีธนาคาร" value={form.bank_account_number} onChange={(v:any) => setForm({...form, bank_account_number: v})} placeholder="xxx-x-xxxxx-x" />
                 </div>
               </div>
 

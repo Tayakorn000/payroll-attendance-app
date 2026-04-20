@@ -89,6 +89,7 @@ export default function EmployeePayslips() {
                   <Row label="เงินเดือนพื้นฐาน" value={slip.base_salary_earned.toLocaleString()} prefix="฿" />
                   <Row label="ค่าอาหารกลางวัน" value={slip.lunch_allowance_earned.toLocaleString()} prefix="฿" />
                   <Row label="ค่าล่วงเวลา (OT)" value={slip.ot_pay.toLocaleString()} prefix="฿" />
+                  {slip.piece_rate_earned > 0 && <Row label="รายได้ตามชิ้นงาน" value={slip.piece_rate_earned.toLocaleString()} prefix="฿" highlight="text-blue-600 font-bold" />}
                   {slip.bonus > 0 && <Row label="โบนัส" value={slip.bonus.toLocaleString()} prefix="฿" highlight="text-green-600 font-bold" />}
                   {slip.commission > 0 && <Row label="คอมมิชชั่น" value={slip.commission.toLocaleString()} prefix="฿" highlight="text-green-600 font-bold" />}
                   {slip.other_earnings > 0 && <Row label="รายได้อื่นๆ" value={slip.other_earnings.toLocaleString()} prefix="฿" />}
@@ -107,6 +108,7 @@ export default function EmployeePayslips() {
                 <div className="space-y-4 text-gray-600">
                   <Row label="ประกันสังคม" value={slip.social_security_deduction.toLocaleString()} prefix="฿" highlight="text-red-500" />
                   <Row label="กองทุนสำรองฯ (PVD)" value={slip.provident_fund_deduction.toLocaleString()} prefix="฿" highlight="text-red-500" />
+                  {slip.loan_deduction > 0 && <Row label="หักชำระเงินกู้" value={slip.loan_deduction.toLocaleString()} prefix="฿" highlight="text-red-500 font-bold" />}
                   <Row label="ภาษีหัก ณ ที่จ่าย" value={slip.tax_deduction.toLocaleString()} prefix="฿" highlight="text-red-500" />
                   <Row label="หักเงินเบิกล่วงหน้า" value={slip.advance_deduction.toLocaleString()} prefix="฿" highlight="text-red-500" />
                   <Row label="หักมาสาย/ขาดงาน" value={slip.late_penalty.toLocaleString()} prefix="฿" highlight="text-red-500" />

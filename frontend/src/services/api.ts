@@ -74,3 +74,11 @@ export const updateLeaveStatus = (id: string, status: string) => api.patch(`/lea
 export const getAnnouncements = () => api.get("/announcements/");
 export const createAnnouncement = (data: any) => api.post("/announcements/", data);
 export const deleteAnnouncement = (id: string) => api.delete(`/announcements/${id}`);
+
+// Settings
+export const getSettings = () => api.get("/settings/");
+export const updateSetting = (key: string, value: string) => api.patch(`/settings/${key}`, { value });
+
+// Hardware & Tasks
+export const syncBiometrics = (records: any[]) => api.post("/hardware/sync", records);
+export const getTaskStatus = (id: string) => api.get(`/payroll/tasks/${id}`);
