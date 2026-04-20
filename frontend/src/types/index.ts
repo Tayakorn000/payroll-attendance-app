@@ -61,14 +61,31 @@ export interface PayrollSlip {
   base_salary_earned: number;
   lunch_allowance_earned: number;
   ot_pay: number;
+  bonus: number;
+  commission: number;
+  other_earnings: number;
   total_earnings: number;
   social_security_deduction: number;
   advance_deduction: number;
   late_penalty: number;
+  other_deductions: number;
   total_deductions: number;
   net_pay: number;
   status: "draft" | "approved" | "paid";
   approved_at: string | null;
+  notes: string | null;
+}
+
+export interface LeaveRequest {
+  id: string;
+  employee_id: string;
+  leave_type: "sick" | "annual" | "personal" | "unpaid";
+  start_date: string;
+  end_date: string;
+  days_count: number;
+  reason: string | null;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
 }
 
 export interface Advance {

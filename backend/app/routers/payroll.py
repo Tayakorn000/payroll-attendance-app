@@ -10,7 +10,10 @@ from app.models.attendance import AttendanceLog, AttendanceStatus
 from app.models.employee import Employee
 from app.models.advance import Advance, AdvanceStatus
 from app.models.user import User
-from app.schemas.payroll import PayrollPeriodCreate, PayrollPeriodOut, PayrollSlipOut
+from app.schemas.payroll import PayrollPeriodCreate, PayrollPeriodOut, PayrollSlipOut, PayrollSlipUpdate
+from app.models.leave import LeaveRequest, LeaveStatus
+from fastapi.responses import StreamingResponse
+import io, csv
 from app.core.calculations import calculate_payroll, calculate_attendance, WorkSchedule, count_working_days
 from app.routers.auth import require_admin, get_current_user
 
@@ -75,6 +78,25 @@ async def calculate_period(period_id: UUID, db: AsyncSession = Depends(get_db)):
             for log in logs
         ]
 
+        # Count approved leaves in this period
+        leaves_result = await db.execute(
+            select(LeaveRequest).where(
+                and_(
+                    LeaveRequest.employee_id == emp.id,
+                    LeaveRequest.status == LeaveStatus.approved,
+                    LeaveRequest.start_date <= period.end_date,
+                    LeaveRequest.end_date >= period.start_date
+                )
+            )
+        )
+        period_leaves = leaves_result.scalars().all()
+        days_leave = 0
+        for l in period_leaves:
+            ov_start = max(l.start_date, period.start_date)
+            ov_end = min(l.end_date, period.end_date)
+            if ov_start <= ov_end:
+                days_leave += (ov_end - ov_start).days + 1
+
         # Count approved advances assigned to this period
         advances_result = await db.execute(
             select(Advance).where(
@@ -88,7 +110,18 @@ async def calculate_period(period_id: UUID, db: AsyncSession = Depends(get_db)):
         advances = advances_result.scalars().all()
         advance_total = sum(float(a.amount) for a in advances)
 
-        days_leave = sum(1 for r in attendance_results if r.status == "leave")
+        # Preserve manual adjustments if recalculating
+        existing_slip_res = await db.execute(
+            select(PayrollSlip).where(
+                and_(PayrollSlip.period_id == period_id, PayrollSlip.employee_id == emp.id)
+            )
+        )
+        old_slip = existing_slip_res.scalar_one_or_none()
+        
+        bonus = float(old_slip.bonus) if old_slip else 0.0
+        commission = float(old_slip.commission) if old_slip else 0.0
+        other_earnings = float(old_slip.other_earnings) if old_slip else 0.0
+        other_deductions = float(old_slip.other_deductions) if old_slip else 0.0
 
         result = calculate_payroll(
             employee_id=str(emp.id),
@@ -104,15 +137,12 @@ async def calculate_period(period_id: UUID, db: AsyncSession = Depends(get_db)):
             working_days_in_period=working_days,
             days_leave=days_leave,
             advance_deduction=advance_total,
+            bonus=bonus,
+            commission=commission,
+            other_earnings=other_earnings,
+            other_deductions=other_deductions,
         )
 
-        # Upsert payslip
-        existing_slip = await db.execute(
-            select(PayrollSlip).where(
-                and_(PayrollSlip.period_id == period_id, PayrollSlip.employee_id == emp.id)
-            )
-        )
-        slip = existing_slip.scalar_one_or_none()
         slip_data = dict(
             working_days_in_period=result.working_days,
             days_worked=result.days_worked,
@@ -123,16 +153,21 @@ async def calculate_period(period_id: UUID, db: AsyncSession = Depends(get_db)):
             base_salary_earned=result.base_salary_earned,
             lunch_allowance_earned=result.lunch_allowance_earned,
             ot_pay=result.ot_pay,
+            bonus=result.bonus,
+            commission=result.commission,
+            other_earnings=result.other_earnings,
             total_earnings=result.total_earnings,
             social_security_deduction=result.social_security,
             advance_deduction=result.advance_deduction,
             late_penalty=result.late_penalty,
+            other_deductions=result.other_deductions,
             total_deductions=result.total_deductions,
             net_pay=result.net_pay,
         )
-        if slip:
+        if old_slip:
             for k, v in slip_data.items():
-                setattr(slip, k, v)
+                setattr(old_slip, k, v)
+            slip = old_slip
         else:
             slip = PayrollSlip(period_id=period_id, employee_id=emp.id, **slip_data)
             db.add(slip)

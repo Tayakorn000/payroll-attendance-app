@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/auth";
-import { LogOut, Users, DollarSign, Clock, Home, CreditCard, Key } from "lucide-react";
+import { LogOut, Users, DollarSign, Clock, Home, CreditCard, Key, Calendar, Megaphone } from "lucide-react";
 import { useState } from "react";
 import ChangePasswordModal from "./ChangePasswordModal";
 
@@ -8,12 +8,15 @@ const adminNav = [
   { to: "/admin", label: "แผงควบคุม", icon: Home, end: true },
   { to: "/admin/employees", label: "พนักงาน", icon: Users },
   { to: "/admin/attendance", label: "การเข้างาน", icon: Clock },
+  { to: "/admin/leaves", label: "การลา", icon: Calendar },
   { to: "/admin/payroll", label: "เงินเดือน", icon: DollarSign },
   { to: "/admin/advances", label: "เบิกเงินล่วงหน้า", icon: CreditCard },
+  { to: "/admin/announcements", label: "ประกาศ", icon: Megaphone },
 ];
 
 const employeeNav = [
   { to: "/employee", label: "แผงควบคุม", icon: Home, end: true },
+  { to: "/employee/leaves", label: "แจ้งลา", icon: Calendar },
   { to: "/employee/payslips", label: "สลิปเงินเดือนของฉัน", icon: DollarSign },
   { to: "/employee/advances", label: "เบิกเงินล่วงหน้าของฉัน", icon: CreditCard },
 ];

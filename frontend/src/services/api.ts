@@ -53,6 +53,8 @@ export const calculatePeriod = (id: string) => api.post(`/payroll/periods/${id}/
 export const approvePeriod = (id: string) => api.post(`/payroll/periods/${id}/approve`);
 export const getMySlips = (periodId?: string) => api.get("/payroll/slips/me", { params: { period_id: periodId } });
 export const getEmployeeSlips = (id: string, periodId?: string) => api.get(`/payroll/slips/${id}`, { params: { period_id: periodId } });
+export const updatePayrollSlip = (id: string, data: any) => api.patch(`/payroll/slips/${id}`, data);
+export const exportPayroll = (periodId: string) => api.get(`/payroll/periods/${periodId}/export`, { responseType: "blob" });
 
 // Advances
 export const getMyAdvances = () => api.get("/advances/me");
@@ -61,3 +63,14 @@ export const listAdvances = (status?: string) => api.get("/advances/", { params:
 export const approveAdvance = (id: string, periodId?: string) =>
   api.patch(`/advances/${id}/approve`, null, { params: { period_id: periodId } });
 export const rejectAdvance = (id: string) => api.patch(`/advances/${id}/reject`);
+
+// Leaves
+export const getMyLeaves = () => api.get("/leaves/me");
+export const requestLeave = (data: any) => api.post("/leaves/", data);
+export const listLeaves = (status?: string) => api.get("/leaves/", { params: { status } });
+export const updateLeaveStatus = (id: string, status: string) => api.patch(`/leaves/${id}`, { status });
+
+// Announcements
+export const getAnnouncements = () => api.get("/announcements/");
+export const createAnnouncement = (data: any) => api.post("/announcements/", data);
+export const deleteAnnouncement = (id: string) => api.delete(`/announcements/${id}`);

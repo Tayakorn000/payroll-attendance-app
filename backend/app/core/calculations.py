@@ -47,11 +47,15 @@ class PayrollResult:
     base_salary_earned: float
     lunch_allowance_earned: float
     ot_pay: float
+    bonus: float
+    commission: float
+    other_earnings: float
     total_earnings: float
     # Deductions
     social_security: float
     advance_deduction: float
     late_penalty: float
+    other_deductions: float
     total_deductions: float
     net_pay: float
 
@@ -162,6 +166,10 @@ def calculate_payroll(
     days_leave: int,
     advance_deduction: float,
     late_penalty_per_minute: float = 0.0,
+    bonus: float = 0.0,
+    commission: float = 0.0,
+    other_earnings: float = 0.0,
+    other_deductions: float = 0.0,
 ) -> PayrollResult:
     """
     Compute a full payroll slip from aggregated attendance data.
@@ -171,11 +179,13 @@ def calculate_payroll(
       - Daily  : daily_rate × days_worked
       - Lunch  : lunch_allowance_per_day × days_present (absent/leave excluded)
       - OT     : (ot_minutes_total / 60) × ot_rate_per_hour
+      - Bonus/Comm/Other: manual additions
 
     Deductions:
       - Social Security : min(base_salary × ss_rate, ss_cap)
       - Advances        : sum of approved advances assigned to this period
       - Late penalty    : late_minutes × penalty_rate (optional, can be 0)
+      - Other deductions: manual deductions
     """
     days_worked = sum(1 for r in attendance_records if r.status != "absent")
     days_absent = sum(1 for r in attendance_records if r.status == "absent")
@@ -197,7 +207,7 @@ def calculate_payroll(
     ot_hours = ot_minutes_total / 60.0
     ot_pay = round(ot_hours * ot_rate_per_hour, 2)
 
-    total_earnings = round(base_earned + lunch_earned + ot_pay, 2)
+    total_earnings = round(base_earned + lunch_earned + ot_pay + bonus + commission + other_earnings, 2)
 
     # --- Social Security ---
     ss = round(min(base_earned * social_security_rate, social_security_cap), 2)
@@ -205,7 +215,7 @@ def calculate_payroll(
     # --- Late penalty ---
     late_penalty = round(late_minutes_total * late_penalty_per_minute, 2)
 
-    total_deductions = round(ss + advance_deduction + late_penalty, 2)
+    total_deductions = round(ss + advance_deduction + late_penalty + other_deductions, 2)
     net_pay = round(total_earnings - total_deductions, 2)
 
     return PayrollResult(
@@ -220,10 +230,14 @@ def calculate_payroll(
         base_salary_earned=round(base_earned, 2),
         lunch_allowance_earned=round(lunch_earned, 2),
         ot_pay=ot_pay,
+        bonus=bonus,
+        commission=commission,
+        other_earnings=other_earnings,
         total_earnings=total_earnings,
         social_security=ss,
         advance_deduction=round(advance_deduction, 2),
         late_penalty=late_penalty,
+        other_deductions=other_deductions,
         total_deductions=total_deductions,
         net_pay=net_pay,
     )

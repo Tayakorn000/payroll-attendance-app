@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routers import auth, employees, attendance, payroll, advances
+from app.routers import auth, employees, attendance, payroll, advances, leaves, announcements
 import os
 
 
@@ -34,6 +34,8 @@ app.include_router(employees.router)
 app.include_router(attendance.router)
 app.include_router(payroll.router)
 app.include_router(advances.router)
+app.include_router(leaves.router)
+app.include_router(announcements.router)
 
 
 @app.get("/health")

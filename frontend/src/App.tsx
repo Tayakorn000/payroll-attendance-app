@@ -8,9 +8,12 @@ import AdminEmployees from "./pages/admin/Employees";
 import AdminAttendance from "./pages/admin/Attendance";
 import AdminPayroll from "./pages/admin/Payroll";
 import AdminAdvances from "./pages/admin/Advances";
+import AdminLeaves from "./pages/admin/Leaves";
+import AdminAnnouncements from "./pages/admin/Announcements";
 import EmployeeDashboard from "./pages/employee/Dashboard";
 import EmployeePayslips from "./pages/employee/Payslips";
 import EmployeeAdvances from "./pages/employee/Advances";
+import EmployeeLeaves from "./pages/employee/Leave";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -43,6 +46,8 @@ export default function App() {
             <Route path="attendance" element={<AdminAttendance />} />
             <Route path="payroll" element={<AdminPayroll />} />
             <Route path="advances" element={<AdminAdvances />} />
+            <Route path="leaves" element={<AdminLeaves />} />
+            <Route path="announcements" element={<AdminAnnouncements />} />
           </Route>
 
           <Route
@@ -56,6 +61,7 @@ export default function App() {
             <Route index element={<EmployeeDashboard />} />
             <Route path="payslips" element={<EmployeePayslips />} />
             <Route path="advances" element={<EmployeeAdvances />} />
+            <Route path="leaves" element={<EmployeeLeaves />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/login" replace />} />

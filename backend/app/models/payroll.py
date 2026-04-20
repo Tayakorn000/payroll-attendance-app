@@ -55,12 +55,16 @@ class PayrollSlip(Base):
     base_salary_earned: Mapped[float] = mapped_column(Numeric(12, 2), default=0.0)
     lunch_allowance_earned: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     ot_pay: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
+    bonus: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
+    commission: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
+    other_earnings: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     total_earnings: Mapped[float] = mapped_column(Numeric(12, 2), default=0.0)
 
     # Deductions
     social_security_deduction: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     advance_deduction: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     late_penalty: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
+    other_deductions: Mapped[float] = mapped_column(Numeric(10, 2), default=0.0)
     total_deductions: Mapped[float] = mapped_column(Numeric(12, 2), default=0.0)
 
     net_pay: Mapped[float] = mapped_column(Numeric(12, 2), default=0.0)

@@ -36,10 +36,14 @@ class PayrollSlipOut(BaseModel):
     base_salary_earned: float
     lunch_allowance_earned: float
     ot_pay: float
+    bonus: float
+    commission: float
+    other_earnings: float
     total_earnings: float
     social_security_deduction: float
     advance_deduction: float
     late_penalty: float
+    other_deductions: float
     total_deductions: float
     net_pay: float
     status: SlipStatus
@@ -48,6 +52,14 @@ class PayrollSlipOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class PayrollSlipUpdate(BaseModel):
+    bonus: float | None = None
+    commission: float | None = None
+    other_earnings: float | None = None
+    other_deductions: float | None = None
+    notes: str | None = None
 
 
 class AdvanceCreate(BaseModel):

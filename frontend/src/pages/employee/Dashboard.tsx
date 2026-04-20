@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { getMySlips, getMyAdvances, getAttendance } from "../../services/api";
+import { getMySlips, getMyAdvances, getAttendance, getAnnouncements } from "../../services/api";
 import { useAuthStore } from "../../store/auth";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import type { PayrollSlip, Advance, AttendanceLog } from "../../types";
+import { Megaphone } from "lucide-react";
 
 const STATUS_THAI_SLIP: Record<string, string> = {
   draft: "ฉบับร่าง",
@@ -38,6 +39,10 @@ export default function EmployeeDashboard() {
     queryFn: () => getAttendance(employeeId!, start, end).then((r) => r.data),
     enabled: !!employeeId,
   });
+  const { data: announcements = [] } = useQuery({
+    queryKey: ["announcements"],
+    queryFn: () => getAnnouncements().then(r => r.data)
+  });
 
   const latestSlip = slips?.[0];
   const pendingAdvances = advances?.filter((a) => a.status === "pending").length ?? 0;
@@ -47,6 +52,20 @@ export default function EmployeeDashboard() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-800 mb-6">แผงควบคุมของฉัน</h1>
+
+      {announcements.length > 0 && (
+        <div className="mb-6 space-y-3">
+          {announcements.slice(0, 2).map((ann: any) => (
+            <div key={ann.id} className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-r-lg shadow-sm flex gap-3">
+              <Megaphone className="text-orange-600 shrink-0" size={20} />
+              <div>
+                <p className="font-bold text-orange-900 text-sm">{ann.title}</p>
+                <p className="text-orange-800 text-xs mt-0.5">{ann.content}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {latestSlip && (
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl p-6 mb-6 shadow">
