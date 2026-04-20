@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, field_validator
 from uuid import UUID
 from datetime import datetime, date
+from app.models.employee import EmploymentType
 class EmployeeCreate(BaseModel):
     employee_code: str
     first_name: str
