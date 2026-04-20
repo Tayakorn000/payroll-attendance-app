@@ -34,8 +34,8 @@ export default function AdminPayroll() {
     queryFn: () => getEmployees().then(r => r.data),
   });
   const { data: slips = [] } = useQuery<PayrollSlip[]>({
-    queryKey: ["slips", selectedEmp],
-    queryFn: () => selectedEmp ? getEmployeeSlips(selectedEmp).then(r => r.data) : Promise.resolve([]),
+    queryKey: ["slips", selectedEmp, selectedPeriod],
+    queryFn: () => selectedEmp ? getEmployeeSlips(selectedEmp, selectedPeriod).then(r => r.data) : Promise.resolve([]),
     enabled: !!selectedEmp,
   });
 

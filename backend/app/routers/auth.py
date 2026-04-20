@@ -6,8 +6,9 @@ from datetime import datetime
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import Token, UserCreate, UserOut
+from app.schemas.user import Token, UserCreate, UserOut, ChangePassword, ResetPassword
 from app.core.security import verify_password, hash_password, create_access_token, decode_token, oauth2_scheme
+from uuid import UUID
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -62,3 +63,24 @@ async def create_user(payload: UserCreate, db: AsyncSession = Depends(get_db)):
 @router.get("/me", response_model=UserOut)
 async def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/change-password")
+async def change_password(payload: ChangePassword, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if not verify_password(payload.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="รหัสผ่านปัจจุบันไม่ถูกต้อง")
+    current_user.hashed_password = hash_password(payload.new_password)
+    await db.commit()
+    return {"message": "เปลี่ยนรหัสผ่านสำเร็จ"}
+
+
+@router.post("/employees/{employee_id}/reset-password", dependencies=[Depends(require_admin)])
+async def reset_employee_password(employee_id: UUID, payload: ResetPassword, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).where(User.employee_id == employee_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="ไม่พบรหัสเข้าใช้งานของพนักงานคนนี้")
+    user.hashed_password = hash_password(payload.new_password)
+    await db.commit()
+    return {"message": "รีเซ็ตรหัสผ่านพนักงานสำเร็จ"}
+

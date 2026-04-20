@@ -28,12 +28,16 @@ export const login = (username: string, password: string) => {
   form.append("password", password);
   return api.post("/auth/login", form);
 };
+export const getMe = () => api.get("/auth/me");
+export const changePassword = (data: any) => api.post("/auth/change-password", data);
+export const resetEmployeePassword = (employeeId: string, data: any) => api.post(`/auth/employees/${employeeId}/reset-password`, data);
 
 // Employees
 export const getEmployees = () => api.get("/employees/");
 export const getEmployee = (id: string) => api.get(`/employees/${id}`);
 export const createEmployee = (data: unknown) => api.post("/employees/", data);
 export const updateEmployee = (id: string, data: unknown) => api.patch(`/employees/${id}`, data);
+export const deleteEmployee = (id: string) => api.delete(`/employees/${id}`);
 
 // Attendance
 export const getAttendance = (employeeId: string, start: string, end: string) =>
@@ -47,8 +51,8 @@ export const getPeriods = () => api.get("/payroll/periods");
 export const createPeriod = (data: unknown) => api.post("/payroll/periods", data);
 export const calculatePeriod = (id: string) => api.post(`/payroll/periods/${id}/calculate`);
 export const approvePeriod = (id: string) => api.post(`/payroll/periods/${id}/approve`);
-export const getMySlips = () => api.get("/payroll/slips/me");
-export const getEmployeeSlips = (id: string) => api.get(`/payroll/slips/${id}`);
+export const getMySlips = (periodId?: string) => api.get("/payroll/slips/me", { params: { period_id: periodId } });
+export const getEmployeeSlips = (id: string, periodId?: string) => api.get(`/payroll/slips/${id}`, { params: { period_id: periodId } });
 
 // Advances
 export const getMyAdvances = () => api.get("/advances/me");

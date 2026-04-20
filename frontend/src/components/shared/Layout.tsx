@@ -1,6 +1,8 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/auth";
-import { LogOut, Users, DollarSign, Clock, Home, CreditCard } from "lucide-react";
+import { LogOut, Users, DollarSign, Clock, Home, CreditCard, Key } from "lucide-react";
+import { useState } from "react";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 const adminNav = [
   { to: "/admin", label: "แผงควบคุม", icon: Home, end: true },
@@ -19,6 +21,7 @@ const employeeNav = [
 export default function Layout() {
   const { role, logout } = useAuthStore();
   const navigate = useNavigate();
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const nav = role === "admin" ? adminNav : employeeNav;
 
   const handleLogout = () => {
@@ -50,10 +53,17 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
-        <div className="p-3 border-t">
+        <div className="p-3 border-t space-y-1">
+          <button
+            onClick={() => setIsPasswordModalOpen(true)}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 w-full"
+          >
+            <Key size={16} />
+            เปลี่ยนรหัสผ่าน
+          </button>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-100 w-full"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 w-full"
           >
             <LogOut size={16} />
             ออกจากระบบ
@@ -63,6 +73,7 @@ export default function Layout() {
       <main className="flex-1 overflow-auto p-8">
         <Outlet />
       </main>
+      <ChangePasswordModal isOpen={isPasswordModalOpen} onClose={() => setIsPasswordModalOpen(false)} />
     </div>
   );
 }

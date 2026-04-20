@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getEmployees, createEmployee, updateEmployee } from "../../services/api";
+import { getEmployees, createEmployee, updateEmployee, resetEmployeePassword, deleteEmployee } from "../../services/api";
 import type { Employee } from "../../types";
-import { Plus, Pencil, X } from "lucide-react";
+import { Plus, Pencil, X, Key, Trash2 } from "lucide-react";
 
 const emptyForm = {
   employee_code: "", first_name: "", last_name: "", department: "", position: "",
@@ -13,9 +13,10 @@ const emptyForm = {
 
 export default function AdminEmployees() {
   const qc = useQueryClient();
-  const [modal, setModal] = useState<"create" | "edit" | null>(null);
+  const [modal, setModal] = useState<"create" | "edit" | "reset" | null>(null);
   const [selected, setSelected] = useState<Employee | null>(null);
   const [form, setForm] = useState<any>(emptyForm);
+  const [newPassword, setNewPassword] = useState("");
 
   const { data: employees = [] } = useQuery<Employee[]>({
     queryKey: ["employees"],
@@ -30,6 +31,16 @@ export default function AdminEmployees() {
     mutationFn: ({ id, data }: { id: string; data: any }) => updateEmployee(id, data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["employees"] }); setModal(null); },
   });
+  const resetMut = useMutation({
+    mutationFn: ({ id, pass }: { id: string; pass: string }) => resetEmployeePassword(id, { new_password: pass }),
+    onSuccess: () => { alert("รีเซ็ตรหัสผ่านสำเร็จ"); setModal(null); setNewPassword(""); },
+    onError: (err: any) => alert(err.response?.data?.detail || "เกิดข้อผิดพลาด"),
+  });
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => deleteEmployee(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["employees"] }); },
+    onError: (err: any) => alert(err.response?.data?.detail || "เกิดข้อผิดพลาด"),
+  });
 
   const openCreate = () => { setForm(emptyForm); setModal("create"); };
   const openEdit = (emp: Employee) => {
@@ -37,8 +48,22 @@ export default function AdminEmployees() {
     setForm({ ...emp, daily_rate: emp.daily_rate ?? "" });
     setModal("edit");
   };
+  const openReset = (emp: Employee) => {
+    setSelected(emp);
+    setNewPassword("");
+    setModal("reset");
+  };
+  const handleDelete = (emp: Employee) => {
+    if (confirm(`ยืนยันการลบพนักงาน: ${emp.full_name}?`)) {
+      deleteMut.mutate(emp.id);
+    }
+  };
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (modal === "reset" && selected) {
+      resetMut.mutate({ id: selected.id, pass: newPassword });
+      return;
+    }
     const payload = { ...form, daily_rate: form.daily_rate || null, base_salary: Number(form.base_salary), ot_rate_per_hour: Number(form.ot_rate_per_hour), lunch_allowance_per_day: Number(form.lunch_allowance_per_day) };
     if (modal === "create") createMut.mutate(payload);
     else if (selected) updateMut.mutate({ id: selected.id, data: payload });
@@ -76,8 +101,16 @@ export default function AdminEmployees() {
                 </td>
                 <td className="px-4 py-3">฿{emp.base_salary.toLocaleString()}</td>
                 <td className="px-4 py-3">฿{emp.ot_rate_per_hour}/ชม.</td>
-                <td className="px-4 py-3">
-                  <button onClick={() => openEdit(emp)} className="text-gray-500 hover:text-blue-600"><Pencil size={15} /></button>
+                <td className="px-4 py-3 flex gap-2">
+                  <button onClick={() => openEdit(emp)} className="text-gray-500 hover:text-blue-600 p-1 hover:bg-gray-100 rounded-md transition-colors" title="แก้ไข">
+                    <Pencil size={15} />
+                  </button>
+                  <button onClick={() => openReset(emp)} className="text-gray-500 hover:text-orange-600 p-1 hover:bg-gray-100 rounded-md transition-colors" title="รีเซ็ตรหัสผ่าน">
+                    <Key size={15} />
+                  </button>
+                  <button onClick={() => handleDelete(emp)} className="text-gray-500 hover:text-red-600 p-1 hover:bg-gray-100 rounded-md transition-colors" title="ลบ">
+                    <Trash2 size={15} />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -85,7 +118,38 @@ export default function AdminEmployees() {
         </table>
       </div>
 
-      {modal && (
+      {modal === "reset" && selected && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+            <div className="flex justify-between items-center p-5 border-b">
+              <h2 className="font-semibold text-gray-800 text-sm">รีเซ็ตรหัสผ่าน: {selected.full_name}</h2>
+              <button onClick={() => setModal(null)}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 uppercase mb-1.5">รหัสผ่านใหม่</label>
+                <input
+                  type="password"
+                  required
+                  autoFocus
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="อย่างน้อย 6 ตัวอักษร"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setModal(null)} className="flex-1 border border-gray-200 rounded-lg py-2 text-sm text-gray-600">ยกเลิก</button>
+                <button type="submit" disabled={resetMut.isPending} className="flex-1 bg-orange-500 text-white rounded-lg py-2 text-sm font-medium hover:bg-orange-600 disabled:opacity-50">
+                  {resetMut.isPending ? "กำลังบันทึก..." : "ยืนยัน"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {(modal === "create" || modal === "edit") && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-5 border-b">

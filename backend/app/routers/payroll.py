@@ -165,26 +165,27 @@ async def approve_period(period_id: UUID, db: AsyncSession = Depends(get_db), cu
 
 
 @router.get("/slips/me", response_model=list[PayrollSlipOut])
-async def my_slips(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def my_slips(period_id: UUID | None = None, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     if not current_user.employee_id:
         raise HTTPException(status_code=400, detail="No employee linked to account")
-    result = await db.execute(
-        select(PayrollSlip)
-        .where(PayrollSlip.employee_id == current_user.employee_id)
-        .order_by(PayrollSlip.created_at.desc())
-    )
+    q = select(PayrollSlip).where(PayrollSlip.employee_id == current_user.employee_id)
+    if period_id:
+        q = q.where(PayrollSlip.period_id == period_id)
+    result = await db.execute(q.order_by(PayrollSlip.created_at.desc()))
     return result.scalars().all()
 
 
 @router.get("/slips/{employee_id}", response_model=list[PayrollSlipOut])
 async def employee_slips(
     employee_id: UUID,
+    period_id: UUID | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     if current_user.role != "admin" and current_user.employee_id != employee_id:
         raise HTTPException(status_code=403, detail="Access denied")
-    result = await db.execute(
-        select(PayrollSlip).where(PayrollSlip.employee_id == employee_id).order_by(PayrollSlip.created_at.desc())
-    )
+    q = select(PayrollSlip).where(PayrollSlip.employee_id == employee_id)
+    if period_id:
+        q = q.where(PayrollSlip.period_id == period_id)
+    result = await db.execute(q.order_by(PayrollSlip.created_at.desc()))
     return result.scalars().all()
