@@ -13,6 +13,14 @@ const STATUS_COLORS: Record<string, string> = {
   leave: "bg-purple-100 text-purple-700",
 };
 
+const STATUS_THAI: Record<string, string> = {
+  present: "มาทำงาน",
+  late: "มาสาย",
+  absent: "ขาดงาน",
+  half_day: "ครึ่งวัน",
+  leave: "ลางาน",
+};
+
 export default function AdminAttendance() {
   const qc = useQueryClient();
   const [selectedEmp, setSelectedEmp] = useState<string>("");
@@ -69,32 +77,32 @@ export default function AdminAttendance() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Attendance</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">การเข้างาน</h1>
 
       {/* Filters */}
       <div className="bg-white rounded-xl p-4 shadow-sm mb-4 flex flex-wrap gap-3 items-end">
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Employee</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">พนักงาน</label>
           <select value={selectedEmp} onChange={e => setSelectedEmp(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm min-w-[180px]">
-            <option value="">Select employee…</option>
+            <option value="">เลือกพนักงาน…</option>
             {employees.map(emp => (
               <option key={emp.id} value={emp.id}>{emp.employee_code} — {emp.full_name}</option>
             ))}
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">From</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">จากวันที่</label>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm" />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">To</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">ถึงวันที่</label>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm" />
         </div>
         <button onClick={() => refetch()} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
-          <Search size={14} /> Search
+          <Search size={14} /> ค้นหา
         </button>
       </div>
 
@@ -102,11 +110,11 @@ export default function AdminAttendance() {
       {logs.length > 0 && (
         <div className="grid grid-cols-5 gap-3 mb-4">
           {[
-            { label: "Present", value: totals.present, color: "text-green-600" },
-            { label: "Late", value: totals.late, color: "text-yellow-600" },
-            { label: "Absent", value: totals.absent, color: "text-red-600" },
-            { label: "Late (min)", value: totals.lateMin, color: "text-orange-600" },
-            { label: "OT (min)", value: totals.otMin, color: "text-blue-600" },
+            { label: "มาทำงาน", value: totals.present, color: "text-green-600" },
+            { label: "มาสาย", value: totals.late, color: "text-yellow-600" },
+            { label: "ขาดงาน", value: totals.absent, color: "text-red-600" },
+            { label: "มาสาย (นาที)", value: totals.lateMin, color: "text-orange-600" },
+            { label: "OT (นาที)", value: totals.otMin, color: "text-blue-600" },
           ].map(s => (
             <div key={s.label} className="bg-white rounded-xl p-3 shadow-sm text-center">
               <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
@@ -121,14 +129,14 @@ export default function AdminAttendance() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
-              {["Date", "Clock In", "Clock Out", "Status", "Late (min)", "OT (min)", "Work (min)", "Notes", ""].map(h => (
+              {["วันที่", "เวลาเข้างาน", "เวลาเลิกงาน", "สถานะ", "มาสาย (นาที)", "OT (นาที)", "ทำงาน (นาที)", "หมายเหตุ", ""].map(h => (
                 <th key={h} className="text-left px-4 py-3 text-gray-500 font-medium">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {logs.length === 0 ? (
-              <tr><td colSpan={9} className="px-4 py-8 text-center text-gray-400">Select an employee to view attendance</td></tr>
+              <tr><td colSpan={9} className="px-4 py-8 text-center text-gray-400">เลือกพนักงานเพื่อดูการเข้างาน</td></tr>
             ) : logs.map(log => (
               <tr key={log.id} className="border-b last:border-0 hover:bg-gray-50">
                 <td className="px-4 py-2 font-medium">{log.log_date}</td>
@@ -136,7 +144,7 @@ export default function AdminAttendance() {
                 <td className="px-4 py-2">{log.clock_out ? format(new Date(log.clock_out), "HH:mm") : "—"}</td>
                 <td className="px-4 py-2">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[log.status] || "bg-gray-100 text-gray-600"}`}>
-                    {log.status}
+                    {STATUS_THAI[log.status] || log.status}
                   </span>
                 </td>
                 <td className="px-4 py-2 text-center">{log.late_minutes || "—"}</td>
@@ -156,29 +164,29 @@ export default function AdminAttendance() {
       {editLog && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-5">
-            <h2 className="font-semibold mb-4">Edit Log — {editLog.log_date}</h2>
+            <h2 className="font-semibold mb-4">แก้ไขข้อมูลการเข้างาน — {editLog.log_date}</h2>
             <form onSubmit={handleUpdate} className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Clock In</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">เวลาเข้างาน</label>
                 <input type="datetime-local" value={editForm.clock_in}
                   onChange={e => setEditForm({ ...editForm, clock_in: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Clock Out</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">เวลาเลิกงาน</label>
                 <input type="datetime-local" value={editForm.clock_out}
                   onChange={e => setEditForm({ ...editForm, clock_out: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Notes</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">หมายเหตุ</label>
                 <input type="text" value={editForm.notes}
                   onChange={e => setEditForm({ ...editForm, notes: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-sm" />
               </div>
               <div className="flex gap-3 pt-1">
-                <button type="button" onClick={() => setEditLog(null)} className="flex-1 border rounded-lg py-2 text-sm text-gray-600">Cancel</button>
-                <button type="submit" className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm">Save</button>
+                <button type="button" onClick={() => setEditLog(null)} className="flex-1 border rounded-lg py-2 text-sm text-gray-600">ยกเลิก</button>
+                <button type="submit" className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm">บันทึก</button>
               </div>
             </form>
           </div>

@@ -11,6 +11,13 @@ const STATUS_COLORS: Record<string, string> = {
   deducted: "bg-green-100 text-green-700",
 };
 
+const STATUS_THAI: Record<string, string> = {
+  pending: "รอดำเนินการ",
+  approved: "อนุมัติแล้ว",
+  rejected: "ปฏิเสธ",
+  deducted: "หักเงินแล้ว",
+};
+
 export default function AdminAdvances() {
   const qc = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -50,9 +57,9 @@ export default function AdminAdvances() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Advances</h1>
+        <h1 className="text-2xl font-bold text-gray-800">เบิกเงินล่วงหน้า</h1>
         <button onClick={() => setCreateModal(true)} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
-          <Plus size={16} /> Record Advance
+          <Plus size={16} /> บันทึกการเบิกเงิน
         </button>
       </div>
 
@@ -61,7 +68,7 @@ export default function AdminAdvances() {
         {["", "pending", "approved", "rejected", "deducted"].map(s => (
           <button key={s} onClick={() => setStatusFilter(s)}
             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${statusFilter === s ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
-            {s || "All"}
+            {s ? STATUS_THAI[s] : "ทั้งหมด"}
           </button>
         ))}
       </div>
@@ -70,14 +77,14 @@ export default function AdminAdvances() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
-              {["Employee", "Amount", "Request Date", "Reason", "Status", "Period", "Actions"].map(h => (
+              {["พนักงาน", "จำนวนเงิน", "วันที่ขอเบิก", "เหตุผล", "สถานะ", "รอบการจ่าย", "จัดการ"].map(h => (
                 <th key={h} className="text-left px-4 py-3 text-gray-500 font-medium">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {advances.length === 0 ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">No advances found</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">ไม่พบข้อมูลการเบิกเงินล่วงหน้า</td></tr>
             ) : advances.map(adv => {
               const emp = empMap[adv.employee_id];
               return (
@@ -90,7 +97,7 @@ export default function AdminAdvances() {
                   <td className="px-4 py-3 text-gray-500">{adv.request_date}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs">{adv.reason || "—"}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[adv.status]}`}>{adv.status}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[adv.status]}`}>{STATUS_THAI[adv.status] || adv.status}</span>
                   </td>
                   <td className="px-4 py-3 text-gray-400 text-xs">{periods.find(p => p.id === adv.period_id)?.period_name || "—"}</td>
                   <td className="px-4 py-3">
@@ -113,31 +120,31 @@ export default function AdminAdvances() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-5">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Record Advance</h2>
+              <h2 className="font-semibold">บันทึกการเบิกเงิน</h2>
               <button onClick={() => setCreateModal(false)}><X size={18} /></button>
             </div>
             <form onSubmit={e => { e.preventDefault(); createMut.mutate({ ...form, amount: Number(form.amount) }); }} className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Employee</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">พนักงาน</label>
                 <select required value={form.employee_id} onChange={e => setForm({ ...form, employee_id: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                  <option value="">Select…</option>
+                  <option value="">เลือก...</option>
                   {employees.map(e => <option key={e.id} value={e.id}>{e.employee_code} — {e.full_name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Amount (THB)</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">จำนวนเงิน (บาท)</label>
                 <input type="number" required value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Reason</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">เหตุผล</label>
                 <input type="text" value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
               </div>
               <div className="flex gap-3 pt-1">
-                <button type="button" onClick={() => setCreateModal(false)} className="flex-1 border rounded-lg py-2 text-sm">Cancel</button>
-                <button type="submit" className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm">Record</button>
+                <button type="button" onClick={() => setCreateModal(false)} className="flex-1 border rounded-lg py-2 text-sm">ยกเลิก</button>
+                <button type="submit" className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm">บันทึก</button>
               </div>
             </form>
           </div>
@@ -149,22 +156,22 @@ export default function AdminAdvances() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-5">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">Approve Advance</h2>
+              <h2 className="font-semibold">อนุมัติการเบิกเงิน</h2>
               <button onClick={() => setApproveModal(null)}><X size={18} /></button>
             </div>
-            <p className="text-sm text-gray-600 mb-4">Amount: <strong>฿{Number(approveModal.amount).toLocaleString()}</strong></p>
+            <p className="text-sm text-gray-600 mb-4">จำนวนเงิน: <strong>฿{Number(approveModal.amount).toLocaleString()}</strong></p>
             <div className="mb-4">
-              <label className="block text-xs font-medium text-gray-600 mb-1">Deduct from Period (optional)</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">หักจากรอบการจ่าย (เลือกได้)</label>
               <select value={selectedPeriod} onChange={e => setSelectedPeriod(e.target.value)}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                <option value="">No period (approve only)</option>
+                <option value="">ไม่ระบุรอบ (อนุมัติเท่านั้น)</option>
                 {periods.map(p => <option key={p.id} value={p.id}>{p.period_name}</option>)}
               </select>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setApproveModal(null)} className="flex-1 border rounded-lg py-2 text-sm">Cancel</button>
+              <button onClick={() => setApproveModal(null)} className="flex-1 border rounded-lg py-2 text-sm">ยกเลิก</button>
               <button onClick={() => approveMut.mutate({ id: approveModal.id, periodId: selectedPeriod || undefined })}
-                className="flex-1 bg-green-600 text-white rounded-lg py-2 text-sm">Approve</button>
+                className="flex-1 bg-green-600 text-white rounded-lg py-2 text-sm">อนุมัติ</button>
             </div>
           </div>
         </div>

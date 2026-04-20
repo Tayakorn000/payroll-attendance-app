@@ -47,9 +47,9 @@ export default function AdminEmployees() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Employees</h1>
+        <h1 className="text-2xl font-bold text-gray-800">พนักงาน</h1>
         <button onClick={openCreate} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
-          <Plus size={16} /> Add Employee
+          <Plus size={16} /> เพิ่มพนักงาน
         </button>
       </div>
 
@@ -57,7 +57,7 @@ export default function AdminEmployees() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
-              {["Code", "Name", "Department", "Position", "Type", "Base Salary", "OT Rate", "Actions"].map(h => (
+              {["รหัส", "ชื่อ", "แผนก", "ตำแหน่ง", "ประเภท", "เงินเดือนพื้นฐาน", "ค่าล่วงเวลา (OT)", "จัดการ"].map(h => (
                 <th key={h} className="text-left px-4 py-3 text-gray-500 font-medium">{h}</th>
               ))}
             </tr>
@@ -71,11 +71,11 @@ export default function AdminEmployees() {
                 <td className="px-4 py-3 text-gray-500">{emp.position || "—"}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${emp.employment_type === "monthly" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}`}>
-                    {emp.employment_type}
+                    {emp.employment_type === "monthly" ? "รายเดือน" : "รายวัน"}
                   </span>
                 </td>
                 <td className="px-4 py-3">฿{emp.base_salary.toLocaleString()}</td>
-                <td className="px-4 py-3">฿{emp.ot_rate_per_hour}/hr</td>
+                <td className="px-4 py-3">฿{emp.ot_rate_per_hour}/ชม.</td>
                 <td className="px-4 py-3">
                   <button onClick={() => openEdit(emp)} className="text-gray-500 hover:text-blue-600"><Pencil size={15} /></button>
                 </td>
@@ -89,22 +89,22 @@ export default function AdminEmployees() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center p-5 border-b">
-              <h2 className="font-semibold text-gray-800">{modal === "create" ? "Add Employee" : "Edit Employee"}</h2>
+              <h2 className="font-semibold text-gray-800">{modal === "create" ? "เพิ่มพนักงาน" : "แก้ไขข้อมูลพนักงาน"}</h2>
               <button onClick={() => setModal(null)}><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-5 space-y-3">
               {[
-                { label: "Employee Code", key: "employee_code", type: "text", required: true },
-                { label: "First Name", key: "first_name", type: "text", required: true },
-                { label: "Last Name", key: "last_name", type: "text" },
-                { label: "Department", key: "department", type: "text" },
-                { label: "Position", key: "position", type: "text" },
-                { label: "Base Salary (THB)", key: "base_salary", type: "number" },
-                { label: "OT Rate (THB/hr)", key: "ot_rate_per_hour", type: "number" },
-                { label: "Lunch Allowance/day (THB)", key: "lunch_allowance_per_day", type: "number" },
-                { label: "Work Start", key: "work_start_time", type: "text" },
-                { label: "Work End", key: "work_end_time", type: "text" },
-                { label: "Hire Date", key: "hire_date", type: "date" },
+                { label: "รหัสพนักงาน", key: "employee_code", type: "text", required: true },
+                { label: "ชื่อ", key: "first_name", type: "text", required: true },
+                { label: "นามสกุล", key: "last_name", type: "text" },
+                { label: "แผนก", key: "department", type: "text" },
+                { label: "ตำแหน่ง", key: "position", type: "text" },
+                { label: "เงินเดือนพื้นฐาน (บาท)", key: "base_salary", type: "number" },
+                { label: "ค่าล่วงเวลา (บาท/ชม.)", key: "ot_rate_per_hour", type: "number" },
+                { label: "ค่าอาหารกลางวัน/วัน (บาท)", key: "lunch_allowance_per_day", type: "number" },
+                { label: "เวลาเริ่มงาน", key: "work_start_time", type: "text" },
+                { label: "เวลาเลิกงาน", key: "work_end_time", type: "text" },
+                { label: "วันที่จ้างงาน", key: "hire_date", type: "date" },
               ].map(f => (
                 <div key={f.key}>
                   <label className="block text-xs font-medium text-gray-600 mb-1">{f.label}</label>
@@ -118,17 +118,17 @@ export default function AdminEmployees() {
                 </div>
               ))}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Employment Type</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">ประเภทการจ้างงาน</label>
                 <select value={form.employment_type} onChange={e => setForm({ ...form, employment_type: e.target.value })}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
-                  <option value="monthly">Monthly</option>
-                  <option value="daily">Daily</option>
+                  <option value="monthly">รายเดือน</option>
+                  <option value="daily">รายวัน</option>
                 </select>
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setModal(null)} className="flex-1 border border-gray-200 rounded-lg py-2 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+                <button type="button" onClick={() => setModal(null)} className="flex-1 border border-gray-200 rounded-lg py-2 text-sm text-gray-600 hover:bg-gray-50">ยกเลิก</button>
                 <button type="submit" className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm hover:bg-blue-700">
-                  {modal === "create" ? "Create" : "Save"}
+                  {modal === "create" ? "สร้าง" : "บันทึก"}
                 </button>
               </div>
             </form>

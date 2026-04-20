@@ -11,6 +11,13 @@ const STATUS_COLORS: Record<string, string> = {
   paid: "bg-purple-100 text-purple-700",
 };
 
+const STATUS_THAI: Record<string, string> = {
+  draft: "ฉบับร่าง",
+  processing: "กำลังดำเนินการ",
+  approved: "อนุมัติแล้ว",
+  paid: "จ่ายแล้ว",
+};
+
 export default function AdminPayroll() {
   const qc = useQueryClient();
   const [createModal, setCreateModal] = useState(false);
@@ -55,9 +62,9 @@ export default function AdminPayroll() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Payroll</h1>
+        <h1 className="text-2xl font-bold text-gray-800">เงินเดือน</h1>
         <button onClick={() => setCreateModal(true)} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
-          <Plus size={16} /> New Period
+          <Plus size={16} /> เพิ่มรอบการจ่าย
         </button>
       </div>
 
@@ -66,7 +73,7 @@ export default function AdminPayroll() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
-              {["Period", "Start", "End", "Payment Date", "Status", "Actions"].map(h => (
+              {["รอบการจ่าย", "เริ่มต้น", "สิ้นสุด", "วันที่จ่าย", "สถานะ", "จัดการ"].map(h => (
                 <th key={h} className="text-left px-4 py-3 text-gray-500 font-medium">{h}</th>
               ))}
             </tr>
@@ -79,7 +86,7 @@ export default function AdminPayroll() {
                 <td className="px-4 py-3 text-gray-500">{p.end_date}</td>
                 <td className="px-4 py-3 text-gray-500">{p.payment_date || "—"}</td>
                 <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[p.status]}`}>{p.status}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[p.status]}`}>{STATUS_THAI[p.status] || p.status}</span>
                 </td>
                 <td className="px-4 py-3 flex gap-2">
                   <button
@@ -87,19 +94,19 @@ export default function AdminPayroll() {
                     disabled={calcMut.isPending}
                     className="flex items-center gap-1 text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100"
                   >
-                    <Calculator size={12} /> Calculate
+                    <Calculator size={12} /> คำนวณ
                   </button>
                   {p.status === "processing" && (
                     <button
                       onClick={() => approveMut.mutate(p.id)}
                       className="flex items-center gap-1 text-xs bg-green-50 text-green-600 px-2 py-1 rounded hover:bg-green-100"
                     >
-                      <CheckCircle size={12} /> Approve
+                      <CheckCircle size={12} /> อนุมัติ
                     </button>
                   )}
                   <button onClick={() => setSelectedPeriod(p.id === selectedPeriod ? "" : p.id)}
                     className="flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded hover:bg-gray-200">
-                    <ChevronDown size={12} /> View Slips
+                    <ChevronDown size={12} /> ดูสลิป
                   </button>
                 </td>
               </tr>
@@ -111,10 +118,10 @@ export default function AdminPayroll() {
       {/* Payslip viewer */}
       <div className="bg-white rounded-xl shadow-sm p-5">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-gray-800">Payslip Viewer</h2>
+          <h2 className="font-semibold text-gray-800">สลิปเงินเดือนพนักงาน</h2>
           <select value={selectedEmp} onChange={e => setSelectedEmp(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
-            <option value="">Select employee…</option>
+            <option value="">เลือกพนักงาน...</option>
             {employees.map(e => <option key={e.id} value={e.id}>{e.employee_code} — {e.full_name}</option>)}
           </select>
         </div>
@@ -122,42 +129,42 @@ export default function AdminPayroll() {
           <div key={slip.id} className="border rounded-lg p-4 mb-4">
             <div className="flex justify-between items-start mb-3">
               <div>
-                <p className="font-semibold text-gray-800">Payslip</p>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[slip.status]}`}>{slip.status}</span>
+                <p className="font-semibold text-gray-800">สลิปเงินเดือน</p>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[slip.status]}`}>{STATUS_THAI[slip.status] || slip.status}</span>
               </div>
               <p className="text-2xl font-bold text-gray-800">฿{slip.net_pay.toLocaleString("th-TH", { minimumFractionDigits: 2 })}</p>
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="font-medium text-gray-600 mb-2">Attendance</p>
+                <p className="font-medium text-gray-600 mb-2">การเข้างาน</p>
                 <div className="space-y-1 text-gray-500">
-                  <div className="flex justify-between"><span>Working days</span><span>{slip.working_days_in_period}</span></div>
-                  <div className="flex justify-between"><span>Days worked</span><span>{slip.days_worked}</span></div>
-                  <div className="flex justify-between"><span>Days absent</span><span className="text-red-500">{slip.days_absent}</span></div>
-                  <div className="flex justify-between"><span>Late (min)</span><span className="text-yellow-600">{slip.late_minutes_total}</span></div>
-                  <div className="flex justify-between"><span>OT (min)</span><span className="text-blue-600">{slip.ot_minutes_total}</span></div>
+                  <div className="flex justify-between"><span>วันทำงาน</span><span>{slip.working_days_in_period}</span></div>
+                  <div className="flex justify-between"><span>วันที่มาทำงาน</span><span>{slip.days_worked}</span></div>
+                  <div className="flex justify-between"><span>ขาดงาน (วัน)</span><span className="text-red-500">{slip.days_absent}</span></div>
+                  <div className="flex justify-between"><span>มาสาย (นาที)</span><span className="text-yellow-600">{slip.late_minutes_total}</span></div>
+                  <div className="flex justify-between"><span>OT (นาที)</span><span className="text-blue-600">{slip.ot_minutes_total}</span></div>
                 </div>
               </div>
               <div>
-                <p className="font-medium text-gray-600 mb-2">Earnings</p>
+                <p className="font-medium text-gray-600 mb-2">รายได้</p>
                 <div className="space-y-1 text-gray-500">
-                  <div className="flex justify-between"><span>Base salary</span><span>฿{slip.base_salary_earned.toLocaleString()}</span></div>
-                  <div className="flex justify-between"><span>Lunch allowance</span><span>฿{slip.lunch_allowance_earned.toLocaleString()}</span></div>
-                  <div className="flex justify-between"><span>OT pay</span><span>฿{slip.ot_pay.toLocaleString()}</span></div>
-                  <div className="flex justify-between font-medium text-gray-700 border-t pt-1 mt-1"><span>Total earnings</span><span>฿{slip.total_earnings.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span>เงินเดือนพื้นฐาน</span><span>฿{slip.base_salary_earned.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span>ค่าอาหารกลางวัน</span><span>฿{slip.lunch_allowance_earned.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span>ค่าล่วงเวลา (OT)</span><span>฿{slip.ot_pay.toLocaleString()}</span></div>
+                  <div className="flex justify-between font-medium text-gray-700 border-t pt-1 mt-1"><span>รายได้รวม</span><span>฿{slip.total_earnings.toLocaleString()}</span></div>
                 </div>
-                <p className="font-medium text-gray-600 mb-2 mt-3">Deductions</p>
+                <p className="font-medium text-gray-600 mb-2 mt-3">รายการหัก</p>
                 <div className="space-y-1 text-gray-500">
-                  <div className="flex justify-between"><span>Social Security</span><span>฿{slip.social_security_deduction.toLocaleString()}</span></div>
-                  <div className="flex justify-between"><span>Advances</span><span>฿{slip.advance_deduction.toLocaleString()}</span></div>
-                  <div className="flex justify-between font-medium text-red-600 border-t pt-1 mt-1"><span>Total deductions</span><span>฿{slip.total_deductions.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span>ประกันสังคม</span><span>฿{slip.social_security_deduction.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span>เบิกเงินล่วงหน้า</span><span>฿{slip.advance_deduction.toLocaleString()}</span></div>
+                  <div className="flex justify-between font-medium text-red-600 border-t pt-1 mt-1"><span>รายการหักรวม</span><span>฿{slip.total_deductions.toLocaleString()}</span></div>
                 </div>
               </div>
             </div>
           </div>
         ))}
-        {selectedEmp && slips.length === 0 && <p className="text-gray-400 text-sm text-center py-6">No payslips found for this employee.</p>}
-        {!selectedEmp && <p className="text-gray-400 text-sm text-center py-6">Select an employee to view payslips.</p>}
+        {selectedEmp && slips.length === 0 && <p className="text-gray-400 text-sm text-center py-6">ไม่พบสลิปเงินเดือนสำหรับพนักงานรายนี้</p>}
+        {!selectedEmp && <p className="text-gray-400 text-sm text-center py-6">เลือกพนักงานเพื่อดูสลิปเงินเดือน</p>}
       </div>
 
       {/* Create Period modal */}
@@ -165,15 +172,15 @@ export default function AdminPayroll() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-5">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="font-semibold">New Payroll Period</h2>
+              <h2 className="font-semibold">รอบการจ่ายเงินเดือนใหม่</h2>
               <button onClick={() => setCreateModal(false)}><X size={18} /></button>
             </div>
             <form onSubmit={handleCreate} className="space-y-3">
               {[
-                { label: "Period Name", key: "period_name", type: "text", placeholder: "e.g. April 2026" },
-                { label: "Start Date", key: "start_date", type: "date" },
-                { label: "End Date", key: "end_date", type: "date" },
-                { label: "Payment Date", key: "payment_date", type: "date" },
+                { label: "ชื่อรอบการจ่าย", key: "period_name", type: "text", placeholder: "เช่น เมษายน 2026" },
+                { label: "วันที่เริ่มต้น", key: "start_date", type: "date" },
+                { label: "วันที่สิ้นสุด", key: "end_date", type: "date" },
+                { label: "วันที่จ่ายเงิน", key: "payment_date", type: "date" },
               ].map(f => (
                 <div key={f.key}>
                   <label className="block text-xs font-medium text-gray-600 mb-1">{f.label}</label>
@@ -184,8 +191,8 @@ export default function AdminPayroll() {
                 </div>
               ))}
               <div className="flex gap-3 pt-1">
-                <button type="button" onClick={() => setCreateModal(false)} className="flex-1 border rounded-lg py-2 text-sm text-gray-600">Cancel</button>
-                <button type="submit" className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm">Create</button>
+                <button type="button" onClick={() => setCreateModal(false)} className="flex-1 border rounded-lg py-2 text-sm text-gray-600">ยกเลิก</button>
+                <button type="submit" className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm">สร้าง</button>
               </div>
             </form>
           </div>
