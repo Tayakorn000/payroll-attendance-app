@@ -10,6 +10,7 @@ import enum
 class EmploymentType(str, enum.Enum):
     monthly = "monthly"
     daily = "daily"
+    piece_rate = "piece_rate"
 
 
 class Employee(Base):
@@ -60,6 +61,8 @@ class Employee(Base):
     payroll_slips: Mapped[list["PayrollSlip"]] = relationship("PayrollSlip", back_populates="employee")
     advances: Mapped[list["Advance"]] = relationship("Advance", back_populates="employee")
     leave_requests: Mapped[list["LeaveRequest"]] = relationship("LeaveRequest", back_populates="employee")
+    piece_rate_work: Mapped[list["PieceRateWork"]] = relationship("PieceRateWork", back_populates="employee")
+    loans: Mapped[list["Loan"]] = relationship("Loan", back_populates="employee")
 
     @property
     def full_name(self) -> str:

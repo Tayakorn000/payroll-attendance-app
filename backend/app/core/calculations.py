@@ -1,36 +1,29 @@
-"""
-Core payroll calculation engine.
-
-All time calculations use aware datetimes (Asia/Bangkok by default).
-OT is counted only after the standard work_end time; work done before
-work_start is NOT counted as OT (treated as early arrival).
-"""
-
 from dataclasses import dataclass
-from datetime import datetime, date, timedelta
-from math import floor
+from datetime import datetime, time, date, timedelta
 import pytz
+from typing import Any
+from decimal import Decimal
 
 BKK = pytz.timezone("Asia/Bangkok")
 
 
 @dataclass
-class WorkSchedule:
-    work_start: str = "08:00"   # HH:MM
-    work_end: str = "17:00"     # HH:MM
-    ot_round_minutes: int = 30  # round OT down to nearest N minutes
-
-
-@dataclass
 class AttendanceResult:
     date: date
-    status: str            # present / absent / late / half_day
+    status: str  # present, absent, late, half_day, leave
     clock_in: datetime | None
     clock_out: datetime | None
     late_minutes: int
     early_leave_minutes: int
     ot_minutes: int
     work_minutes: int
+
+
+@dataclass
+class WorkSchedule:
+    start_time: time  # e.g., 08:00
+    end_time: time    # e.g., 17:00
+    late_grace_period: int = 5  # minutes
 
 
 @dataclass
@@ -47,6 +40,7 @@ class PayrollResult:
     base_salary_earned: float
     lunch_allowance_earned: float
     ot_pay: float
+    piece_rate_earned: float
     bonus: float
     commission: float
     other_earnings: float
@@ -56,18 +50,16 @@ class PayrollResult:
     provident_fund: float
     tax_deduction: float
     advance_deduction: float
+    loan_deduction: float
     late_penalty: float
     other_deductions: float
     total_deductions: float
     net_pay: float
 
 
-def calculate_thai_pit(annual_income: float, personal_allowance: float = 60000.0, sso_annual: float = 9000.0) -> float:
+def calculate_thai_pit(annual_income: float, personal_allowance: float = 60000.0, sso_annual: float = 9000.0, tax_steps: list = None) -> float:
     """
     Calculate Thai Personal Income Tax (Progressive Rate).
-    Logic:
-      1. Gross Income - Expense (50% max 100k) - Personal Allowance (60k) - SSO (max 9k)
-      2. Apply progressive steps.
     """
     # Standard Expense: 50% but not exceeding 100,000
     expense = min(annual_income * 0.5, 100000.0)
@@ -77,7 +69,8 @@ def calculate_thai_pit(annual_income: float, personal_allowance: float = 60000.0
         return 0.0
 
     tax = 0.0
-    steps = [
+    # Default steps if not provided from DB
+    steps = tax_steps or [
         (150000, 0.00),
         (300000, 0.05),
         (500000, 0.10),
@@ -100,94 +93,48 @@ def calculate_thai_pit(annual_income: float, personal_allowance: float = 60000.0
     return round(tax, 2)
 
 
-def _parse_hhmm(hhmm: str, ref_date: date) -> datetime:
-    """Convert 'HH:MM' string + a reference date into a timezone-aware datetime."""
-    h, m = map(int, hhmm.split(":"))
-    return BKK.localize(datetime(ref_date.year, ref_date.month, ref_date.day, h, m))
-
-
 def calculate_attendance(
+    log_date: date,
     clock_in: datetime | None,
     clock_out: datetime | None,
-    log_date: date,
     schedule: WorkSchedule,
 ) -> AttendanceResult:
     """
-    Derive late_minutes, early_leave_minutes, ot_minutes, and work_minutes
-    from a single day's clock-in / clock-out pair.
-
-    OT rounding example (ot_round_minutes=30):
-        43 raw OT minutes → 30 credited OT minutes
-        91 raw OT minutes → 90 credited OT minutes
-
-    Returns an AttendanceResult with calculated values.
+    Evaluate a single day's attendance against the schedule.
     """
-    work_start_dt = _parse_hhmm(schedule.work_start, log_date)
-    work_end_dt = _parse_hhmm(schedule.work_end, log_date)
+    if not clock_in or not clock_out:
+        return AttendanceResult(log_date, "absent", None, None, 0, 0, 0, 0)
 
-    # Absent: no clock-in at all
-    if clock_in is None:
-        return AttendanceResult(
-            date=log_date,
-            status="absent",
-            clock_in=None,
-            clock_out=None,
-            late_minutes=0,
-            early_leave_minutes=0,
-            ot_minutes=0,
-            work_minutes=0,
-        )
+    # Convert schedule times to full datetimes for comparison
+    sched_start = BKK.localize(datetime.combine(log_date, schedule.start_time))
+    sched_end = BKK.localize(datetime.combine(log_date, schedule.end_time))
 
-    # Ensure timezone awareness
-    if clock_in.tzinfo is None:
-        clock_in = BKK.localize(clock_in)
-    if clock_out is not None and clock_out.tzinfo is None:
-        clock_out = BKK.localize(clock_out)
+    late_min = 0
+    if clock_in > sched_start + timedelta(minutes=schedule.late_grace_period):
+        late_min = max(0, int((clock_in - sched_start).total_seconds() / 60))
 
-    # --- Late minutes ---
-    late_minutes = 0
-    if clock_in > work_start_dt:
-        late_minutes = int((clock_in - work_start_dt).total_seconds() / 60)
+    early_min = 0
+    if clock_out < sched_end:
+        early_min = max(0, int((sched_end - clock_out).total_seconds() / 60))
 
-    # --- Early leave & OT minutes ---
-    early_leave_minutes = 0
-    ot_minutes = 0
-    work_minutes = 0
+    ot_min = 0
+    if clock_out > sched_end + timedelta(minutes=30):
+        # OT often starts after a 30-min buffer, or rounds down to nearest 30
+        diff_sec = (clock_out - sched_end).total_seconds()
+        ot_min = int(diff_sec / 60)
 
-    if clock_out is not None:
-        # Effective work end for this day (clock_out may be before or after schedule)
-        effective_end = clock_out
-
-        # Early leave: left before scheduled end
-        if effective_end < work_end_dt:
-            early_leave_minutes = int((work_end_dt - effective_end).total_seconds() / 60)
-
-        # OT: stayed past scheduled end
-        if effective_end > work_end_dt:
-            raw_ot = int((effective_end - work_end_dt).total_seconds() / 60)
-            # Round DOWN to nearest ot_round_minutes block
-            ot_minutes = floor(raw_ot / schedule.ot_round_minutes) * schedule.ot_round_minutes
-
-        # Total minutes actually at work (clock_in → clock_out)
-        work_minutes = int((effective_end - clock_in).total_seconds() / 60)
-
-    # Status
-    if late_minutes >= 240:  # > 4 hours late = half day
-        status = "half_day"
-    elif late_minutes > 0:
-        status = "late"
-    else:
-        status = "present"
+    work_min = int((clock_out - clock_in).total_seconds() / 60)
+    status = "late" if late_min > 0 else "present"
 
     return AttendanceResult(
         date=log_date,
         status=status,
         clock_in=clock_in,
         clock_out=clock_out,
-        late_minutes=late_minutes,
-        early_leave_minutes=early_leave_minutes,
-        ot_minutes=ot_minutes,
-        work_minutes=work_minutes,
+        late_minutes=late_min,
+        early_leave_minutes=early_min,
+        ot_minutes=ot_min,
+        work_minutes=work_min,
     )
 
 
@@ -205,6 +152,8 @@ def calculate_payroll(
     working_days_in_period: int,
     days_leave: int,
     advance_deduction: float,
+    loan_deduction: float = 0.0,
+    piece_rate_earned: float = 0.0,
     late_penalty_per_minute: float = 0.0,
     bonus: float = 0.0,
     commission: float = 0.0,
@@ -212,9 +161,10 @@ def calculate_payroll(
     other_deductions: float = 0.0,
     pvd_rate: float = 0.0,
     tax_allowance_personal: float = 60000.0,
+    tax_steps: list = None
 ) -> PayrollResult:
     """
-    Compute a full payroll slip with Thai Tax and PVD.
+    Compute a full payroll slip.
     """
     days_worked = sum(1 for r in attendance_records if r.status != "absent")
     days_absent = sum(1 for r in attendance_records if r.status == "absent")
@@ -222,12 +172,14 @@ def calculate_payroll(
     ot_minutes_total = sum(r.ot_minutes for r in attendance_records)
     days_present = sum(1 for r in attendance_records if r.status in ("present", "late", "half_day"))
 
-    # --- Base salary ---
+    # --- Base salary / Piece Rate ---
     if employment_type == "monthly":
         base_earned = float(base_salary)
-    else:
+    elif employment_type == "daily":
         rate = daily_rate if daily_rate else base_salary
         base_earned = rate * days_worked
+    else: # piece_rate
+        base_earned = 0.0 # mostly relies on piece_rate_earned + maybe a small base
 
     # --- Lunch allowance ---
     lunch_earned = lunch_allowance_per_day * days_present
@@ -236,23 +188,25 @@ def calculate_payroll(
     ot_hours = ot_minutes_total / 60.0
     ot_pay = round(ot_hours * ot_rate_per_hour, 2)
 
-    total_earnings = round(base_earned + lunch_earned + ot_pay + bonus + commission + other_earnings, 2)
+    total_earnings = round(base_earned + lunch_earned + ot_pay + piece_rate_earned + bonus + commission + other_earnings, 2)
 
     # --- Social Security ---
-    ss = round(min(base_earned * social_security_rate, social_security_cap), 2)
+    # SSO is usually calculated based on base salary (earned)
+    ss_basis = base_earned if employment_type != "piece_rate" else total_earnings
+    ss = round(min(ss_basis * social_security_rate, social_security_cap), 2)
     
     # --- Provident Fund ---
     pvd = round(base_earned * pvd_rate, 2)
 
     # --- Tax Calculation (Simple Annual Estimate) ---
-    annual_income = total_earnings * 12 # Simple estimation
-    annual_tax = calculate_thai_pit(annual_income, tax_allowance_personal, ss * 12)
+    annual_income = total_earnings * 12
+    annual_tax = calculate_thai_pit(annual_income, tax_allowance_personal, ss * 12, tax_steps=tax_steps)
     tax_monthly = round(annual_tax / 12, 2)
 
     # --- Late penalty ---
     late_penalty = round(late_minutes_total * late_penalty_per_minute, 2)
 
-    total_deductions = round(ss + pvd + tax_monthly + advance_deduction + late_penalty + other_deductions, 2)
+    total_deductions = round(ss + pvd + tax_monthly + advance_deduction + loan_deduction + late_penalty + other_deductions, 2)
     net_pay = round(total_earnings - total_deductions, 2)
 
     return PayrollResult(
@@ -267,6 +221,7 @@ def calculate_payroll(
         base_salary_earned=round(base_earned, 2),
         lunch_allowance_earned=round(lunch_earned, 2),
         ot_pay=ot_pay,
+        piece_rate_earned=round(piece_rate_earned, 2),
         bonus=bonus,
         commission=commission,
         other_earnings=other_earnings,
@@ -275,6 +230,7 @@ def calculate_payroll(
         provident_fund=pvd,
         tax_deduction=tax_monthly,
         advance_deduction=round(advance_deduction, 2),
+        loan_deduction=round(loan_deduction, 2),
         late_penalty=late_penalty,
         other_deductions=other_deductions,
         total_deductions=total_deductions,
@@ -282,8 +238,10 @@ def calculate_payroll(
     )
 
 
-def count_working_days(start: date, end: date, holidays: list[date] | None = None) -> int:
-    """Count Mon-Fri weekdays between start and end (inclusive), excluding holidays."""
+def count_working_days(start: date, end: date, holidays: list[date] = None) -> int:
+    """
+    Count weekdays between two dates, excluding holidays.
+    """
     holidays_set = set(holidays or [])
     current = start
     count = 0
